@@ -158,11 +158,12 @@ export function useWorkerPool(config: UseWorkerPoolConfig): UseWorkerPoolResult 
         if (config.enableErrorRecovery) {
           errorRecoveryRef.current = new ErrorRecoveryManager({
             maxRetries: 3,
-            retryDelay: 1000,
+            retryDelayMs: 1000,
             fallbackStrategy: 'client-side',
             enableClientSideFallback: true,
-            cacheResults: config.enableCaching ?? true,
-            escalationThreshold: 5
+            enableCaching: config.enableCaching ?? true,
+            cacheExpiration: 300000, // 5 minutes
+            exponentialBackoff: true
           });
         }
 
@@ -324,7 +325,7 @@ export function useWorkerPool(config: UseWorkerPoolConfig): UseWorkerPoolResult 
           // Try error recovery if enabled
           if (errorRecoveryRef.current) {
             try {
-              const recovery = await errorRecoveryRef.current.handleError(submitError, task);
+              const recovery = await errorRecoveryRef.current.recover(submitError, task);
               
               if (recovery.action === 'retry') {
                 // Retry the task

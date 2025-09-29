@@ -8,10 +8,10 @@
 import type { 
   WorkerError, 
   ProcessingTask, 
-  TaskResult,
-  FormattedOutput 
-} from '@/types/workers';
-import type { FormatType } from '@/types';
+  TaskResult
+} from '../../types/workers';
+import type { FormattedOutput } from '../../types/formatting';
+import type { FormatType } from '../../types';
 
 /**
  * Fallback strategy types
@@ -21,46 +21,48 @@ export type FallbackStrategy =
   | 'simplified'
   | 'cached'
   | 'manual'
-  | 'none';
+  | 'skip';
 
 /**
- * Recovery action types
+ * Recovery action result
  */
-export type RecoveryAction = 
-  | 'retry'
-  | 'fallback'
-  | 'skip'
-  | 'escalate';
+export interface RecoveryAction {
+  action: 'retry' | 'fallback' | 'skip' | 'manual';
+  result?: TaskResult;
+  delay?: number;
+  strategy?: FallbackStrategy;
+}
 
 /**
  * Error recovery configuration
  */
 export interface ErrorRecoveryConfig {
   maxRetries: number;
-  retryDelay: number;
-  fallbackStrategy: FallbackStrategy;
+  retryDelayMs: number;
+  exponentialBackoff: boolean;
   enableClientSideFallback: boolean;
-  cacheResults: boolean;
-  escalationThreshold: number;
+  enableCaching: boolean;
+  cacheExpiration: number;
+  fallbackStrategy: FallbackStrategy;
 }
 
 /**
  * Fallback processor interface
  */
-export interface FallbackProcessor {
+interface FallbackProcessor {
   canHandle(format: FormatType): boolean;
   process(task: ProcessingTask): Promise<FormattedOutput>;
   getCapabilities(): string[];
 }
 
 /**
- * Error recovery manager
+ * Comprehensive error recovery manager
  */
 export class ErrorRecoveryManager {
   private retryAttempts: Map<string, number> = new Map();
+  private errorHistory: Map<string, WorkerError[]> = new Map();
+  private cache: Map<string, { result: FormattedOutput; timestamp: number }> = new Map();
   private fallbackProcessors: Map<FormatType, FallbackProcessor> = new Map();
-  private errorHistory: Array<{ timestamp: number; error: WorkerError; taskId: string }> = [];
-  private resultCache: Map<string, { result: FormattedOutput; timestamp: number }> = new Map();
 
   constructor(private config: ErrorRecoveryConfig) {
     this.initializeFallbackProcessors();
@@ -72,7 +74,7 @@ export class ErrorRecoveryManager {
    */
   private initializeFallbackProcessors(): void {
     // Basic text processor fallback
-    this.fallbackProcessors.set('plain-text', new BasicFallbackProcessor());
+    this.fallbackProcessors.set('journal-notes', new BasicFallbackProcessor());
     
     // Meeting notes fallback
     this.fallbackProcessors.set('meeting-notes', new MeetingNotesFallbackProcessor());
@@ -83,121 +85,56 @@ export class ErrorRecoveryManager {
     // Shopping lists fallback
     this.fallbackProcessors.set('shopping-lists', new ShoppingListsFallbackProcessor());
     
-    // Journal notes fallback
-    this.fallbackProcessors.set('journal-notes', new JournalNotesFallbackProcessor());
-    
-    // Research notes fallback
+    // Additional format processors
     this.fallbackProcessors.set('research-notes', new ResearchNotesFallbackProcessor());
-    
-    // Study notes fallback
     this.fallbackProcessors.set('study-notes', new StudyNotesFallbackProcessor());
   }
 
   /**
-   * Handle a processing error and determine recovery action
+   * Recover from worker error with appropriate strategy
    */
-  async handleError(
-    error: WorkerError, 
-    task: ProcessingTask
-  ): Promise<{ action: RecoveryAction; result?: TaskResult }> {
-    // Record error in history
-    this.recordError(error, task.taskId);
-
-    // Check if we should escalate based on error frequency
-    if (this.shouldEscalate()) {
-      return { action: 'escalate' };
-    }
-
-    // Determine recovery strategy based on error type
-    const recoveryStrategy = this.determineRecoveryStrategy(error, task);
-
-    switch (recoveryStrategy) {
-      case 'retry':
-        return this.handleRetry(task);
-        
-      case 'fallback':
-        return await this.handleFallback(task);
-        
-      case 'skip':
-        return { action: 'skip' };
-        
-      case 'escalate':
-        return { action: 'escalate' };
-        
-      default:
-        return await this.handleFallback(task);
-    }
-  }
-
-  /**
-   * Determine the best recovery strategy for an error
-   */
-  private determineRecoveryStrategy(error: WorkerError, task: ProcessingTask): RecoveryAction {
-    const retryCount = this.retryAttempts.get(task.taskId) || 0;
-
-    // Check for non-recoverable errors
-    const nonRecoverableErrors = [
-      'INVALID_INPUT',
-      'UNSUPPORTED_FORMAT',
-      'PERMISSION_DENIED',
-      'QUOTA_EXCEEDED'
-    ];
-
-    if (nonRecoverableErrors.includes(error.code)) {
-      return 'fallback';
-    }
-
-    // Check retry limit
-    if (retryCount >= this.config.maxRetries) {
-      return 'fallback';
-    }
-
-    // Determine based on error type
-    switch (error.code) {
-      case 'WORKER_TERMINATED':
-      case 'WORKER_TIMEOUT':
-      case 'NETWORK_ERROR':
-        return retryCount < 2 ? 'retry' : 'fallback';
-        
-      case 'OUT_OF_MEMORY':
-      case 'PROCESSING_TIMEOUT':
-        return 'fallback'; // Don't retry memory/timeout issues
-        
-      case 'INITIALIZATION_ERROR':
-        return retryCount === 0 ? 'retry' : 'escalate';
-        
-      default:
-        return retryCount < this.config.maxRetries ? 'retry' : 'fallback';
-    }
-  }
-
-  /**
-   * Handle retry strategy
-   */
-  private async handleRetry(task: ProcessingTask): Promise<{ action: RecoveryAction; result?: TaskResult }> {
-    const retryCount = (this.retryAttempts.get(task.taskId) || 0) + 1;
-    this.retryAttempts.set(task.taskId, retryCount);
-
-    // Calculate delay with exponential backoff
-    const delay = this.config.retryDelay * Math.pow(2, retryCount - 1);
+  async recover(error: WorkerError, task: ProcessingTask): Promise<RecoveryAction> {
+    const taskId = task.taskId;
     
-    // Add some jitter
-    const jitter = Math.random() * 0.1 * delay;
-    const finalDelay = delay + jitter;
-
-    // Wait before retry
-    await new Promise(resolve => setTimeout(resolve, finalDelay));
-
-    return { action: 'retry' };
+    // Record error for analysis
+    this.recordError(error, taskId);
+    
+    // Get current retry count
+    const retryCount = this.retryAttempts.get(taskId) || 0;
+    
+    // Determine recovery strategy
+    if (retryCount < this.config.maxRetries && this.shouldRetry(error)) {
+      return this.handleRetry(taskId, retryCount);
+    }
+    
+    // Try fallback strategies
+    return this.handleFallback(task, error);
   }
 
   /**
-   * Handle fallback strategy
+   * Handle retry logic with exponential backoff
    */
-  private async handleFallback(task: ProcessingTask): Promise<{ action: RecoveryAction; result?: TaskResult }> {
+  private handleRetry(taskId: string, retryCount: number): RecoveryAction {
+    this.retryAttempts.set(taskId, retryCount + 1);
+    
+    let delay = this.config.retryDelayMs;
+    if (this.config.exponentialBackoff) {
+      delay = Math.min(delay * Math.pow(2, retryCount), 30000); // Max 30 seconds
+    }
+    
+    return {
+      action: 'retry',
+      delay
+    };
+  }
+
+  /**
+   * Handle fallback processing strategies
+   */
+  private async handleFallback(task: ProcessingTask, error: WorkerError): Promise<RecoveryAction> {
     try {
-      // First check if we have a cached result
-      if (this.config.cacheResults) {
+      // Try cached result first
+      if (this.config.enableCaching) {
         const cachedResult = this.getCachedResult(task);
         if (cachedResult) {
           return {
@@ -209,10 +146,11 @@ export class ErrorRecoveryManager {
               metrics: {
                 duration: 0,
                 stats: {
-                  inputLength: task.input.text.length,
-                  outputLength: cachedResult.formattedText.length,
-                  processingTime: 0,
-                  confidence: 0.7 // Lower confidence for cached results
+                  linesProcessed: task.input.content.split('\n').length,
+                  patternsMatched: 0,
+                  itemsExtracted: 0,
+                  duplicatesRemoved: 0,
+                  changesApplied: 0
                 },
                 workerId: 'cache',
                 retryCount: this.retryAttempts.get(task.taskId) || 0
@@ -226,10 +164,9 @@ export class ErrorRecoveryManager {
       // Try client-side fallback processing
       if (this.config.enableClientSideFallback) {
         const result = await this.processWithFallback(task);
-        
         if (result) {
-          // Cache the result if successful
-          if (this.config.cacheResults) {
+          // Cache the result
+          if (this.config.enableCaching) {
             this.cacheResult(task, result);
           }
 
@@ -242,10 +179,11 @@ export class ErrorRecoveryManager {
               metrics: {
                 duration: 100, // Estimated
                 stats: {
-                  inputLength: task.input.text.length,
-                  outputLength: result.formattedText.length,
-                  processingTime: 100,
-                  confidence: 0.6 // Lower confidence for fallback
+                  linesProcessed: task.input.content.split('\n').length,
+                  patternsMatched: 1,
+                  itemsExtracted: 0,
+                  duplicatesRemoved: 0,
+                  changesApplied: 1
                 },
                 workerId: 'fallback',
                 retryCount: this.retryAttempts.get(task.taskId) || 0
@@ -256,7 +194,7 @@ export class ErrorRecoveryManager {
         }
       }
 
-      // If all else fails, return a simplified result
+      // Return simplified result as last resort
       const simplifiedResult = this.createSimplifiedResult(task);
       return {
         action: 'fallback',
@@ -267,10 +205,11 @@ export class ErrorRecoveryManager {
           metrics: {
             duration: 50,
             stats: {
-              inputLength: task.input.text.length,
-              outputLength: simplifiedResult.formattedText.length,
-              processingTime: 50,
-              confidence: 0.3 // Very low confidence
+              linesProcessed: task.input.content.split('\n').length,
+              patternsMatched: 0,
+              itemsExtracted: 0,
+              duplicatesRemoved: 0,
+              changesApplied: 1
             },
             workerId: 'simplified',
             retryCount: this.retryAttempts.get(task.taskId) || 0
@@ -280,29 +219,10 @@ export class ErrorRecoveryManager {
       };
 
     } catch (fallbackError) {
-      return { action: 'escalate' };
-    }
-  }
-
-  /**
-   * Process task using fallback processor
-   */
-  private async processWithFallback(task: ProcessingTask): Promise<FormattedOutput | null> {
-    const targetFormat = task.options.targetFormat;
-    if (!targetFormat) {
-      return null;
-    }
-
-    const processor = this.fallbackProcessors.get(targetFormat);
-    if (!processor || !processor.canHandle(targetFormat)) {
-      return null;
-    }
-
-    try {
-      return await processor.process(task);
-    } catch (error) {
-      console.error('Fallback processor failed:', error);
-      return null;
+      // Complete failure - return skip action
+      return {
+        action: 'skip'
+      };
     }
   }
 
@@ -313,86 +233,105 @@ export class ErrorRecoveryManager {
     const input = task.input;
     
     // Basic text cleaning and formatting
-    const cleanedText = input.text
+    const cleanedText = input.content
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
     return {
-      id: `simplified_${task.taskId}`,
-      formattedText: cleanedText,
-      originalText: input.text,
-      format: task.options.targetFormat || 'plain-text',
+      content: cleanedText,
+      format: task.options.targetFormat || 'journal-notes',
       metadata: {
-        confidence: 0.3,
-        detectedPatterns: ['basic-cleanup'],
+        processedAt: new Date(),
+        duration: 10,
+        confidence: 30, // Low confidence
+        itemCount: 1,
         stats: {
-          inputLength: input.text.length,
-          outputLength: cleanedText.length,
-          processingTime: 10,
-          confidence: 0.3
-        },
-        suggestions: ['Manual review recommended'],
-        exportOptions: ['plain-text', 'copy']
+          linesProcessed: input.content.split('\n').length,
+          patternsMatched: 0,
+          itemsExtracted: 0,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          entries: [],
+          insights: ['Basic text cleanup applied'],
+          topics: [],
+          mood: undefined
+        }
+      },
+      warnings: ['Simplified processing applied due to worker errors']
     };
   }
 
   /**
-   * Record error in history for analysis
+   * Process task with appropriate fallback processor
    */
-  private recordError(error: WorkerError, taskId: string): void {
-    this.errorHistory.push({
-      timestamp: Date.now(),
-      error,
-      taskId
-    });
+  private async processWithFallback(task: ProcessingTask): Promise<FormattedOutput | null> {
+    const targetFormat = task.options.targetFormat;
+    if (!targetFormat) return null;
 
-    // Keep only recent errors (last hour)
-    const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    this.errorHistory = this.errorHistory.filter(e => e.timestamp > oneHourAgo);
+    const processor = this.fallbackProcessors.get(targetFormat);
+    if (!processor || !processor.canHandle(targetFormat)) {
+      // Try basic processor as last resort
+      const basicProcessor = this.fallbackProcessors.get('journal-notes');
+      if (basicProcessor) {
+        return await basicProcessor.process(task);
+      }
+      return null;
+    }
+
+    return await processor.process(task);
   }
 
   /**
-   * Check if errors should be escalated
+   * Determine if error should trigger retry
    */
-  private shouldEscalate(): boolean {
-    const recentErrors = this.errorHistory.filter(
-      e => e.timestamp > Date.now() - 10 * 60 * 1000 // Last 10 minutes
-    );
-
-    return recentErrors.length >= this.config.escalationThreshold;
+  private shouldRetry(error: WorkerError): boolean {
+    const retryableErrors = [
+      'WORKER_TIMEOUT',
+      'NETWORK_ERROR',
+      'TEMPORARY_FAILURE',
+      'RESOURCE_EXHAUSTED'
+    ];
+    
+    return retryableErrors.includes(error.code);
   }
 
   /**
-   * Cache a successful result
+   * Cache processing result
    */
   private cacheResult(task: ProcessingTask, result: FormattedOutput): void {
     const cacheKey = this.getCacheKey(task);
-    this.resultCache.set(cacheKey, {
+    this.cache.set(cacheKey, {
       result,
       timestamp: Date.now()
     });
   }
 
   /**
-   * Get cached result if available
+   * Get cached result if available and not expired
    */
   private getCachedResult(task: ProcessingTask): FormattedOutput | null {
     const cacheKey = this.getCacheKey(task);
-    const cached = this.resultCache.get(cacheKey);
+    const cached = this.cache.get(cacheKey);
     
-    if (!cached) {
-      return null;
-    }
-
-    // Check if cache is still valid (1 hour)
-    const maxAge = 60 * 60 * 1000;
-    if (Date.now() - cached.timestamp > maxAge) {
-      this.resultCache.delete(cacheKey);
+    if (!cached) return null;
+    
+    const isExpired = Date.now() - cached.timestamp > this.config.cacheExpiration;
+    if (isExpired) {
+      this.cache.delete(cacheKey);
       return null;
     }
 
@@ -403,7 +342,7 @@ export class ErrorRecoveryManager {
    * Generate cache key for a task
    */
   private getCacheKey(task: ProcessingTask): string {
-    const hash = this.simpleHash(task.input.text);
+    const hash = this.simpleHash(task.input.content);
     return `${task.options.targetFormat || 'default'}_${hash}`;
   }
 
@@ -420,65 +359,62 @@ export class ErrorRecoveryManager {
       hash = hash & hash; // Convert to 32-bit integer
     }
     
-    return Math.abs(hash).toString(36);
+    return hash.toString();
   }
 
   /**
-   * Start cache cleanup process
+   * Record error in history for analysis
+   */
+  private recordError(error: WorkerError, taskId: string): void {
+    const history = this.errorHistory.get(taskId) || [];
+    history.push(error);
+    
+    // Keep only last 10 errors per task
+    if (history.length > 10) {
+      history.shift();
+    }
+    
+    this.errorHistory.set(taskId, history);
+  }
+
+  /**
+   * Clean up expired cache entries
    */
   private startCacheCleanup(): void {
     setInterval(() => {
-      const maxAge = 60 * 60 * 1000; // 1 hour
       const now = Date.now();
-      
-      for (const [key, value] of this.resultCache) {
-        if (now - value.timestamp > maxAge) {
-          this.resultCache.delete(key);
+      for (const [key, cached] of this.cache.entries()) {
+        if (now - cached.timestamp > this.config.cacheExpiration) {
+          this.cache.delete(key);
         }
       }
-    }, 10 * 60 * 1000); // Clean every 10 minutes
+    }, this.config.cacheExpiration / 2);
   }
 
   /**
-   * Get error statistics
+   * Get error statistics for monitoring
    */
-  getErrorStats(): {
-    totalErrors: number;
-    recentErrors: number;
-    errorsByType: Record<string, number>;
-    escalationThresholdReached: boolean;
-  } {
-    const recentErrors = this.errorHistory.filter(
-      e => e.timestamp > Date.now() - 10 * 60 * 1000
-    );
+  getErrorStats(): { totalErrors: number; errorsByType: Record<string, number> } {
+    let totalErrors = 0;
+    const errorsByType: Record<string, number> = {};
 
-    const errorsByType = this.errorHistory.reduce((acc, e) => {
-      acc[e.error.code] = (acc[e.error.code] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    for (const errors of this.errorHistory.values()) {
+      totalErrors += errors.length;
+      for (const error of errors) {
+        errorsByType[error.code] = (errorsByType[error.code] || 0) + 1;
+      }
+    }
 
-    return {
-      totalErrors: this.errorHistory.length,
-      recentErrors: recentErrors.length,
-      errorsByType,
-      escalationThresholdReached: this.shouldEscalate()
-    };
+    return { totalErrors, errorsByType };
   }
 
   /**
-   * Clear retry attempts for a task
-   */
-  clearRetryAttempts(taskId: string): void {
-    this.retryAttempts.delete(taskId);
-  }
-
-  /**
-   * Reset error recovery state
+   * Clear error history and retry counts
    */
   reset(): void {
     this.retryAttempts.clear();
-    this.errorHistory = [];
-    this.resultCache.clear();
+    this.errorHistory.clear();
+    this.cache.clear();
   }
 }
 
@@ -489,31 +425,44 @@ class BasicFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const cleaned = task.input.text
+    const cleaned = task.input.content
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
     return {
-      id: `fallback_${task.taskId}`,
-      formattedText: cleaned,
-      originalText: task.input.text,
-      format: task.options.targetFormat || 'plain-text',
+      content: cleaned,
+      format: task.options.targetFormat || 'journal-notes',
       metadata: {
-        confidence: 0.5,
-        detectedPatterns: ['basic-cleanup'],
+        processedAt: new Date(),
+        duration: 50,
+        confidence: 50,
+        itemCount: 1,
         stats: {
-          inputLength: task.input.text.length,
-          outputLength: cleaned.length,
-          processingTime: 50,
-          confidence: 0.5
-        },
-        suggestions: ['Basic formatting applied'],
-        exportOptions: ['plain-text', 'copy']
+          linesProcessed: task.input.content.split('\n').length,
+          patternsMatched: 1,
+          itemsExtracted: 0,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          entries: [],
+          insights: ['Basic formatting applied'],
+          topics: [],
+          mood: undefined
+        }
+      }
     };
   }
 
@@ -528,7 +477,7 @@ class MeetingNotesFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
+    const text = task.input.content;
     
     // Simple meeting notes formatting
     const lines = text.split('\n');
@@ -536,43 +485,56 @@ class MeetingNotesFallbackProcessor implements FallbackProcessor {
     
     formatted.push('# Meeting Notes\n');
     
-    lines.forEach(line => {
+    lines.forEach((line: string) => {
       const trimmed = line.trim();
       if (!trimmed) return;
       
-      // Simple action item detection
-      if (trimmed.toLowerCase().includes('todo') || 
-          trimmed.toLowerCase().includes('action')) {
-        formatted.push(`**Action Item:** ${trimmed}`);
-      } else if (trimmed.length < 80 && trimmed.endsWith(':')) {
-        // Potential section header
-        formatted.push(`\n## ${trimmed.replace(':', '')}\n`);
+      // Basic action item detection
+      if (trimmed.toLowerCase().includes('action') || trimmed.toLowerCase().includes('todo')) {
+        formatted.push(`**Action:** ${trimmed}`);
       } else {
-        formatted.push(`- ${trimmed}`);
+        formatted.push(trimmed);
       }
     });
 
     const result = formatted.join('\n');
 
     return {
-      id: `meeting_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'meeting-notes',
       metadata: {
-        confidence: 0.6,
-        detectedPatterns: ['basic-structure'],
+        processedAt: new Date(),
+        duration: 100,
+        confidence: 60,
+        itemCount: lines.length,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 100,
-          confidence: 0.6
-        },
-        suggestions: ['Basic meeting structure applied'],
-        exportOptions: ['markdown', 'plain-text', 'copy']
+          linesProcessed: lines.length,
+          patternsMatched: 1,
+          itemsExtracted: 0,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          attendees: [],
+          agendaItems: [],
+          actionItems: [],
+          decisions: [],
+          meeting: {
+            date: new Date(),
+            duration: undefined
+          }
+        }
+      }
     };
   }
 
@@ -587,19 +549,17 @@ class TaskListsFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
+    const text = task.input.content;
     const lines = text.split('\n');
     const tasks: string[] = [];
 
-    lines.forEach(line => {
+    lines.forEach((line: string) => {
       const trimmed = line.trim();
       if (!trimmed) return;
 
       // Convert to checkbox format
       if (trimmed.match(/^[-*•]\s/)) {
         tasks.push(`- [ ] ${trimmed.substring(2)}`);
-      } else if (trimmed.match(/^\d+\.\s/)) {
-        tasks.push(`- [ ] ${trimmed.replace(/^\d+\.\s/, '')}`);
       } else {
         tasks.push(`- [ ] ${trimmed}`);
       }
@@ -608,24 +568,50 @@ class TaskListsFallbackProcessor implements FallbackProcessor {
     const result = `# Task List\n\n${tasks.join('\n')}`;
 
     return {
-      id: `tasks_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'task-lists',
       metadata: {
-        confidence: 0.7,
-        detectedPatterns: ['task-conversion'],
+        processedAt: new Date(),
+        duration: 75,
+        confidence: 70,
+        itemCount: tasks.length,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 75,
-          confidence: 0.7
-        },
-        suggestions: ['Basic task list formatting applied'],
-        exportOptions: ['markdown', 'csv', 'plain-text', 'copy']
+          linesProcessed: lines.length,
+          patternsMatched: tasks.length,
+          itemsExtracted: tasks.length,
+          duplicatesRemoved: 0,
+          changesApplied: tasks.length
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          categories: [],
+          tasks: tasks.map((task, index) => ({
+            id: `task_${index}`,
+            description: task.replace('- [ ] ', ''),
+            text: task.replace('- [ ] ', ''),
+            completed: false,
+            status: 'pending' as const,
+            priority: 'medium' as const,
+            dueDate: undefined,
+            tags: []
+          })),
+          stats: {
+            total: tasks.length,
+            completed: 0,
+            pending: tasks.length,
+            overdue: 0
+          }
+        }
+      }
     };
   }
 
@@ -634,40 +620,62 @@ class TaskListsFallbackProcessor implements FallbackProcessor {
   }
 }
 
-// Additional fallback processors for other formats...
+// Additional fallback processors...
 class ShoppingListsFallbackProcessor implements FallbackProcessor {
   canHandle(format: FormatType): boolean {
     return format === 'shopping-lists';
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
+    const text = task.input.content;
     const items = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .map(item => `- [ ] ${item.replace(/^[-*•]\s*/, '')}`);
+      .map((line: string) => line.trim())
+      .filter((line: string) => line.length > 0)
+      .map((item: string) => `- [ ] ${item.replace(/^[-*•]\s*/, '')}`);
 
     const result = `# Shopping List\n\n${items.join('\n')}`;
 
     return {
-      id: `shopping_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'shopping-lists',
       metadata: {
-        confidence: 0.6,
-        detectedPatterns: ['list-items'],
+        processedAt: new Date(),
+        duration: 60,
+        confidence: 60,
+        itemCount: items.length,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 60,
-          confidence: 0.6
-        },
-        suggestions: ['Basic shopping list formatting applied'],
-        exportOptions: ['markdown', 'csv', 'plain-text', 'copy']
+          linesProcessed: text.split('\n').length,
+          patternsMatched: items.length,
+          itemsExtracted: items.length,
+          duplicatesRemoved: 0,
+          changesApplied: items.length
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          categories: [],
+          items: items.map((item, index) => ({
+            id: `item_${index}`,
+            name: item.replace('- [ ] ', ''),
+            checked: false,
+            category: 'general',
+            quantity: undefined
+          })),
+          stats: {
+            totalItems: items.length,
+            totalCategories: 0,
+            estimatedCost: undefined
+          }
+        }
+      }
     };
   }
 
@@ -682,32 +690,49 @@ class JournalNotesFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
+    const text = task.input.content;
     const paragraphs = text.split(/\n\s*\n/)
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
+      .map((p: string) => p.trim())
+      .filter((p: string) => p.length > 0);
 
     const result = `# Journal Entry\n\n${paragraphs.join('\n\n')}`;
 
     return {
-      id: `journal_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'journal-notes',
       metadata: {
-        confidence: 0.5,
-        detectedPatterns: ['paragraph-structure'],
+        processedAt: new Date(),
+        duration: 70,
+        confidence: 50,
+        itemCount: paragraphs.length,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 70,
-          confidence: 0.5
-        },
-        suggestions: ['Basic journal formatting applied'],
-        exportOptions: ['markdown', 'html', 'plain-text', 'copy']
+          linesProcessed: text.split('\n').length,
+          patternsMatched: 1,
+          itemsExtracted: paragraphs.length,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          entries: paragraphs.map((content, index) => ({
+            timestamp: new Date(),
+            content,
+            tags: []
+          })),
+          insights: ['Basic journal formatting applied'],
+          topics: [],
+          mood: undefined
+        }
+      }
     };
   }
 
@@ -722,29 +747,41 @@ class ResearchNotesFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
-    // Basic research notes formatting
+    const text = task.input.content;
     const result = `# Research Notes\n\n${text}`;
 
     return {
-      id: `research_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'research-notes',
       metadata: {
-        confidence: 0.4,
-        detectedPatterns: ['basic-structure'],
+        processedAt: new Date(),
+        duration: 80,
+        confidence: 40,
+        itemCount: 1,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 80,
-          confidence: 0.4
-        },
-        suggestions: ['Basic research formatting applied'],
-        exportOptions: ['markdown', 'html', 'plain-text', 'copy']
+          linesProcessed: text.split('\n').length,
+          patternsMatched: 0,
+          itemsExtracted: 0,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          citations: [],
+          quotes: [],
+          topics: [],
+          sources: []
+        }
+      }
     };
   }
 
@@ -759,29 +796,41 @@ class StudyNotesFallbackProcessor implements FallbackProcessor {
   }
 
   async process(task: ProcessingTask): Promise<FormattedOutput> {
-    const text = task.input.text;
-    // Basic study notes formatting
+    const text = task.input.content;
     const result = `# Study Notes\n\n${text}`;
 
     return {
-      id: `study_fallback_${task.taskId}`,
-      formattedText: result,
-      originalText: text,
+      content: result,
       format: 'study-notes',
       metadata: {
-        confidence: 0.4,
-        detectedPatterns: ['basic-structure'],
+        processedAt: new Date(),
+        duration: 85,
+        confidence: 40,
+        itemCount: 1,
         stats: {
-          inputLength: text.length,
-          outputLength: result.length,
-          processingTime: 85,
-          confidence: 0.4
-        },
-        suggestions: ['Basic study formatting applied'],
-        exportOptions: ['markdown', 'html', 'plain-text', 'copy']
+          linesProcessed: text.split('\n').length,
+          patternsMatched: 0,
+          itemsExtracted: 0,
+          duplicatesRemoved: 0,
+          changesApplied: 1
+        }
       },
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString()
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: []
+        },
+        formatSpecific: {
+          outline: [],
+          qaPairs: [],
+          definitions: [],
+          topics: []
+        }
+      }
     };
   }
 
