@@ -108,6 +108,14 @@
   --sidebar-accent-foreground: oklch(0.205 0.02 35);
   --sidebar-border: oklch(0.922 0.012 45);
   --sidebar-ring: hsl(var(--orange-500));
+  
+  /* Notebook-specific colors */
+  --notebook-paper: 43 10% 97%;
+  --notebook-binding: 43 15% 85%;
+  --notebook-margin: 220 20% 85%;
+  --notebook-ink: 220 15% 25%;
+  --notebook-shadow: 0 0% 0%;
+  --notebook-torn: 43 8% 92%;
 }
 
 .dark {
@@ -152,6 +160,14 @@
   --sidebar-accent-foreground: oklch(0.985 0.02 35);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: hsl(var(--orange-400));
+  
+  /* Dark mode notebook colors */
+  --notebook-paper: 43 8% 15%;
+  --notebook-binding: 43 12% 25%;
+  --notebook-margin: 220 15% 35%;
+  --notebook-ink: 43 15% 85%;
+  --notebook-shadow: 0 0% 0%;
+  --notebook-torn: 43 6% 20%;
 }
 
 @layer base {
@@ -199,5 +215,69 @@
   
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--orange-500));
+  }
+  
+  /* Notebook-specific utility classes */
+  .notebook-paper {
+    background-color: hsl(var(--notebook-paper));
+    background-image: 
+      /* Ruled lines */
+      linear-gradient(transparent 23px, hsl(var(--notebook-margin) / 0.3) 24px),
+      /* Left margin */
+      linear-gradient(90deg, transparent 59px, hsl(var(--notebook-margin) / 0.5) 60px, transparent 61px);
+    background-size: 100% 25px, 100% 100%;
+  }
+  
+  .notebook-binding {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--notebook-binding)) 0%,
+      hsl(var(--notebook-binding) / 0.8) 50%,
+      hsl(var(--notebook-binding)) 100%
+    );
+    box-shadow: 
+      inset 2px 0 4px hsl(var(--notebook-shadow) / 0.1),
+      inset -2px 0 4px hsl(var(--notebook-shadow) / 0.05);
+  }
+  
+  .notebook-spiral {
+    background: 
+      radial-gradient(circle at 50% 0%, hsl(var(--notebook-binding)) 30%, transparent 31%),
+      radial-gradient(circle at 50% 100%, hsl(var(--notebook-binding)) 30%, transparent 31%);
+    background-size: 20px 12px;
+    background-position: 0 0, 0 6px;
+    box-shadow: var(--spiral);
+  }
+  
+  .notebook-torn-top {
+    position: relative;
+  }
+  
+  .notebook-torn-top::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: hsl(var(--notebook-torn));
+    clip-path: polygon(
+      0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%,
+      30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%,
+      60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%,
+      90% 0%, 95% 100%, 100% 0%
+    );
+  }
+  
+  .notebook-shadow {
+    box-shadow: 
+      0 4px 8px hsl(var(--notebook-shadow) / 0.1),
+      0 1px 3px hsl(var(--notebook-shadow) / 0.08);
+  }
+  
+  .notebook-shadow-lifted {
+    box-shadow: 
+      0 8px 25px hsl(var(--notebook-shadow) / 0.15),
+      0 3px 10px hsl(var(--notebook-shadow) / 0.1);
   }
 }

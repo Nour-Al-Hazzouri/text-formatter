@@ -71,6 +71,15 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        // Notebook-specific colors
+        notebook: {
+          paper: "hsl(var(--notebook-paper))",
+          binding: "hsl(var(--notebook-binding))",
+          margin: "hsl(var(--notebook-margin))",
+          ink: "hsl(var(--notebook-ink))",
+          shadow: "hsl(var(--notebook-shadow))",
+          torn: "hsl(var(--notebook-torn))",
+        },
         chart: {
           1: "hsl(var(--chart-1))",
           2: "hsl(var(--chart-2))",
@@ -80,7 +89,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Modern typography system
+        // Notebook aesthetic typography system
         sans: [
           "var(--font-inter)",
           "Inter",
@@ -91,15 +100,35 @@ const config: Config = {
           "Roboto",
           "sans-serif",
         ],
+        serif: [
+          "var(--font-crimson)",
+          "Crimson Text",
+          "Georgia",
+          "Times New Roman",
+          "Times",
+          "serif",
+        ],
+        handwritten: [
+          "var(--font-caveat)",
+          "Caveat",
+          "Dancing Script",
+          "Kalam",
+          "Indie Flower",
+          "cursive",
+        ],
         heading: [
-          "var(--font-inter)",
-          "Inter",
-          "system-ui",
-          "-apple-system", 
-          "BlinkMacSystemFont",
-          "Segoe UI", 
-          "Roboto",
-          "sans-serif",
+          "var(--font-caveat)",
+          "Caveat",
+          "Dancing Script",
+          "Kalam",
+          "cursive",
+        ],
+        content: [
+          "var(--font-crimson)",
+          "Crimson Text",
+          "Georgia",
+          "Times",
+          "serif",
         ],
         mono: [
           "var(--font-jetbrains-mono)",
@@ -150,6 +179,11 @@ const config: Config = {
         "soft-lg": "0 4px 16px 0 rgba(0, 0, 0, 0.12)",
         "glow-orange": "0 0 20px rgba(255, 138, 76, 0.15)",
         "glow-orange-lg": "0 0 40px rgba(255, 138, 76, 0.2)",
+        // Notebook-specific shadows
+        "paper": "0 4px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+        "paper-lifted": "0 8px 25px rgba(0, 0, 0, 0.15), 0 3px 10px rgba(0, 0, 0, 0.1)",
+        "spiral": "inset 2px 0 4px rgba(0, 0, 0, 0.1)",
+        "torn": "0 2px 4px rgba(0, 0, 0, 0.1)",
       },
       animation: {
         // Enhanced animations
@@ -158,6 +192,11 @@ const config: Config = {
         "slide-in": "slideIn 0.3s ease-out",
         "pulse-soft": "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-soft": "bounceSoft 1s ease-out",
+        // Notebook-specific animations
+        "pen-write": "penWrite 2s ease-in-out infinite",
+        "page-turn": "pageTurn 0.6s ease-out",
+        "spiral-rotate": "spiralRotate 3s ease-in-out infinite",
+        "paper-flutter": "paperFlutter 4s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -179,6 +218,27 @@ const config: Config = {
         bounceSoft: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" },
+        },
+        // Notebook-specific keyframes
+        penWrite: {
+          "0%": { transform: "translateX(-2px) rotate(-1deg)", opacity: "0.8" },
+          "50%": { transform: "translateX(2px) rotate(1deg)", opacity: "1" },
+          "100%": { transform: "translateX(-2px) rotate(-1deg)", opacity: "0.8" },
+        },
+        pageTurn: {
+          "0%": { transform: "rotateY(0deg)", transformOrigin: "left center" },
+          "50%": { transform: "rotateY(-15deg)", transformOrigin: "left center" },
+          "100%": { transform: "rotateY(0deg)", transformOrigin: "left center" },
+        },
+        spiralRotate: {
+          "0%": { transform: "rotate(0deg)" },
+          "50%": { transform: "rotate(2deg)" },
+          "100%": { transform: "rotate(0deg)" },
+        },
+        paperFlutter: {
+          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
+          "25%": { transform: "translateY(-1px) rotate(0.5deg)" },
+          "75%": { transform: "translateY(1px) rotate(-0.5deg)" },
         },
       },
       backdropBlur: {
