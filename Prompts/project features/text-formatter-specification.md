@@ -52,11 +52,11 @@ You are creating a comprehensive technical specification for a **browser-based t
 - **Research Notes**: Structure citations, create topic sections, format quotes and sources
 - **Study Notes**: Convert to outlines, create Q&A sections, highlight definitions
 
-#### 3. Notebook Aesthetic Design System
-- **Color Scheme**: Warm orange primary theme with paper-like backgrounds
-- **Typography**: Handwritten-style fonts for headings, clean sans-serif for content
-- **Visual Effects**: Spiral binding simulation, paper textures, margin lines, torn edge details
-- **Interactive Elements**: Vintage button styles, pen/pencil themed loading states
+#### 3. Modern Orange Design System
+- **Color Scheme**: Warm orange primary theme with clean, contemporary backgrounds
+- **Typography**: Modern sans-serif fonts for headings and content with excellent readability
+- **Visual Effects**: Subtle gradients, smooth transitions, modern shadows, clean borders
+- **Interactive Elements**: Contemporary button styles, smooth loading animations with orange theme
 
 ## Task Definition
 
@@ -209,13 +209,13 @@ A comprehensive implementation guide containing:
 - **Core Components**: TextInput, OutputPreview, FormatSelector with props and interfaces
 - **Custom Hooks**: useTextProcessor, useLocalStorage, useFormatDetection implementations
 - **Context Providers**: FormattingContext, UserPreferencesContext with TypeScript definitions
-- **UI Components**: Notebook-themed design system components with Tailwind classes
+- **UI Components**: Modern orange-themed design system components with Tailwind classes
 - **Responsive Design**: Breakpoint strategies and mobile-first implementation
 
 #### 6. Styling & Design System (1200 words)
-- **Tailwind Configuration**: Custom color palette, fonts, and component classes
-- **CSS Implementation**: Custom CSS for notebook effects, paper textures, animations
-- **Typography System**: Font loading, fallbacks, and handwritten font integration
+- **Tailwind Configuration**: Custom orange color palette, modern fonts, and component classes
+- **CSS Implementation**: Custom CSS for modern effects, smooth transitions, animations
+- **Typography System**: Modern font loading, fallbacks, and clean typography integration
 - **Animation Framework**: Transition specifications and performance considerations
 - **Responsive Strategy**: Mobile adaptations and touch-friendly interactions
 
@@ -244,7 +244,7 @@ Generate production-ready starter code with modern patterns:
 #### Next.js Configuration
 - `next.config.ts` - Optimized build configuration with Turbopack settings
 - `tsconfig.json` - Strict TypeScript configuration with path mapping
-- `tailwind.config.ts` - Custom theme with notebook aesthetic colors and fonts
+- `tailwind.config.ts` - Custom theme with modern orange aesthetic colors and fonts
 - `postcss.config.mjs` - PostCSS plugin configuration
 
 #### Development Configuration
