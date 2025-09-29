@@ -7,7 +7,7 @@ This document breaks down the complete text-formatter project into manageable ta
 **Application**: Browser-based text formatting tool with intelligent pattern recognition  
 **Tech Stack**: Next.js 15.5, React 18+, TypeScript 5.0+, Tailwind CSS, pnpm  
 **Architecture**: Feature-Driven Development with Web Workers and concurrent processing  
-**Design**: Notebook aesthetic with warm orange theme and paper textures  
+**Design**: Modern orange theme with clean, contemporary styling  
 **Core Features**: 6 formatting modes, dual-pane interface, real-time processing  
 
 ---
@@ -32,20 +32,20 @@ This document breaks down the complete text-formatter project into manageable ta
 ---
 
 ### Task 2: Tailwind CSS & Design System Foundation
-**Scope**: Implement the notebook aesthetic design system with Tailwind  
+**Scope**: Implement the modern orange design system with Tailwind  
 **Deliverables**:
-- Configure Tailwind CSS with custom notebook theme colors (warm orange palette)
-- Set up custom fonts (handwritten headers, clean serif content)
-- Create base CSS classes for paper textures and notebook effects
-- Implement spiral binding and torn edge CSS effects
+- Configure Tailwind CSS with custom orange theme colors (warm orange palette)
+- Set up modern fonts (clean sans-serif headers and content)
+- Create base CSS classes for modern effects and smooth transitions
+- Implement contemporary shadows, borders, and gradient effects
 - Create typography system with proper fallbacks
 - Set up responsive breakpoints and mobile-first approach
 
 **Dependencies**: Task 1  
 **Success Criteria**: 
-- Notebook theme renders consistently across browsers
-- Typography hierarchy works with custom fonts
-- Paper texture effects display properly
+- Modern orange theme renders consistently across browsers
+- Typography hierarchy works with modern fonts
+- Contemporary effects display properly
 
 ---
 
@@ -69,18 +69,18 @@ This document breaks down the complete text-formatter project into manageable ta
 ---
 
 ### Task 4: Base UI Components Library
-**Scope**: Create reusable notebook-themed UI components  
+**Scope**: Create reusable modern orange-themed UI components  
 **Deliverables**:
-- Button components (Primary, Secondary, Icon) with vintage typewriter styling
-- Input components (TextArea, Select, Checkbox) with paper backgrounds
-- Card components with paper effects and shadows
+- Button components (Primary, Secondary, Icon) with contemporary styling
+- Input components (TextArea, Select, Checkbox) with clean orange highlights
+- Card components with modern shadows and borders
 - Modal and Drawer components for mobile responsiveness
 - Typography components (Heading, Paragraph, Code) with theme integration
-- Loading indicators with pen/pencil animations
+- Loading indicators with smooth modern animations
 
 **Dependencies**: Tasks 1, 2, 3  
 **Success Criteria**: 
-- All components render with consistent notebook aesthetic
+- All components render with consistent modern orange aesthetic
 - Components are fully accessible (WCAG 2.1 AA compliant)
 - Components work across all target browsers
 
@@ -89,9 +89,9 @@ This document breaks down the complete text-formatter project into manageable ta
 ### Task 5: Layout Components & Navigation
 **Scope**: Build the main application layout structure  
 **Deliverables**:
-- Header component with notebook binding visual effects
-- Footer component with paper texture styling
-- Navigation component with tab-style notebook aesthetics
+- Header component with modern orange accent styling
+- Footer component with clean contemporary design
+- Navigation component with modern tab-style aesthetics
 - Sidebar component for format selection
 - Responsive layout that adapts to mobile/tablet/desktop
 - Page layouts for different sections (main app, history, templates)
@@ -100,7 +100,7 @@ This document breaks down the complete text-formatter project into manageable ta
 **Success Criteria**: 
 - Layout is fully responsive across all breakpoints
 - Navigation is keyboard accessible
-- Visual effects render smoothly without performance issues
+- Modern effects render smoothly without performance issues
 
 ---
 
