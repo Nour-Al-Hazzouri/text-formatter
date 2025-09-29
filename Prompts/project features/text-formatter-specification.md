@@ -21,17 +21,20 @@ You are creating a comprehensive technical specification for a **browser-based t
 - **Zero Backend Dependency**: All processing occurs in the browser using client-side technologies
 - **Real-time Processing**: Immediate text transformation with live preview capabilities
 - **Intelligent Recognition**: Advanced pattern detection for meeting notes, task lists, journals, shopping lists, research notes, and study notes
-- **Notebook Aesthetic**: Warm orange theme with handwritten fonts, paper textures, spiral binding effects
+- **Modern Orange Design**: Clean warm orange theme with contemporary typography and modern UI elements
 - **Dual-Pane Interface**: Side-by-side input/output comparison with real-time synchronization
 
 ### Technology Requirements
 - **Framework**: Next.js 15.5 with App Router and Turbopack
-- **Runtime**: React 18+ with concurrent features and TypeScript 5.0+
-- **Styling**: Tailwind CSS 3.4+ with custom notebook-themed components and PostCSS
+- **Runtime**: React 19.1.0 with concurrent features and TypeScript 5.0+
+- **Styling**: Tailwind CSS 4+ with PostCSS and custom modern orange theme
+- **UI Components**: shadcn/ui (New York style) with Lucide React icons and CVA (Class Variance Authority)
 - **Package Manager**: pnpm 9.0+ for workspace management and dependency optimization
 - **Processing Libraries**: Client-side NLP libraries (Compromise.js, natural.js, or similar)
 - **State Management**: React built-in state with Context API and Local Storage integration
 - **Build Tools**: ESBuild/SWC for fast compilation, bundle analysis tools
+- **Utility Libraries**: clsx and tailwind-merge for dynamic styling, tw-animate-css for animations
+- **Development Tools**: ESLint 9+ with Next.js config, TypeScript strict mode
 
 ### Key Features to Implement
 

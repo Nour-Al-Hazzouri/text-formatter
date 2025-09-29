@@ -1,13 +1,10 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -45,71 +42,116 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  
+  /* Base colors */
+  --background: oklch(0.99 0.005 45);
+  --foreground: oklch(0.125 0.02 45);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.145 0.02 45);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.145 0.02 45);
+  
+  /* Modern Orange Primary Colors */
+  --primary-50: 33 100% 96%;
+  --primary-100: 34 100% 92%;
+  --primary-200: 32 98% 83%;
+  --primary-300: 31 97% 72%;
+  --primary-400: 27 96% 61%;
+  --primary-500: 25 95% 53%;
+  --primary-600: 21 90% 48%;
+  --primary-700: 17 88% 40%;
+  --primary-800: 15 80% 32%;
+  --primary-900: 15 75% 28%;
+  --primary-950: 13 81% 14%;
+  --primary: 25 95% 53%;
+  --primary-foreground: oklch(0.99 0.02 45);
+  
+  /* Orange Accent Colors */
+  --orange-50: 33 100% 96%;
+  --orange-100: 34 100% 92%;
+  --orange-200: 32 98% 83%;
+  --orange-300: 31 97% 72%;
+  --orange-400: 27 96% 61%;
+  --orange-500: 25 95% 53%;
+  --orange-600: 21 90% 48%;
+  --orange-700: 17 88% 40%;
+  --orange-800: 15 80% 32%;
+  --orange-900: 15 75% 28%;
+  --orange-950: 13 81% 14%;
+  
+  /* Supporting colors with orange warmth */
+  --secondary: oklch(0.97 0.013 45);
+  --secondary-foreground: oklch(0.205 0.02 45);
+  --muted: oklch(0.96 0.015 45);
+  --muted-foreground: oklch(0.556 0.02 45);
+  --accent: oklch(0.96 0.02 35);
+  --accent-foreground: oklch(0.205 0.02 35);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --destructive-foreground: oklch(0.985 0.02 45);
+  --border: oklch(0.922 0.012 45);
+  --input: oklch(0.922 0.012 45);
+  --ring: hsl(var(--orange-500));
+  
+  /* Chart colors with orange theme integration */
+  --chart-1: hsl(var(--orange-500));
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  
+  /* Sidebar colors */
+  --sidebar: oklch(0.985 0.008 45);
+  --sidebar-foreground: oklch(0.145 0.02 45);
+  --sidebar-primary: hsl(var(--orange-600));
+  --sidebar-primary-foreground: oklch(0.985 0.02 45);
+  --sidebar-accent: oklch(0.96 0.02 35);
+  --sidebar-accent-foreground: oklch(0.205 0.02 35);
+  --sidebar-border: oklch(0.922 0.012 45);
+  --sidebar-ring: hsl(var(--orange-500));
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark mode with orange accents */
+  --background: oklch(0.145 0.015 45);
+  --foreground: oklch(0.985 0.02 45);
+  --card: oklch(0.205 0.02 45);
+  --card-foreground: oklch(0.985 0.02 45);
+  --popover: oklch(0.205 0.02 45);
+  --popover-foreground: oklch(0.985 0.02 45);
+  
+  /* Dark mode orange primary */
+  --primary: hsl(var(--orange-400));
+  --primary-foreground: oklch(0.125 0.02 45);
+  
+  /* Dark mode supporting colors */
+  --secondary: oklch(0.269 0.02 45);
+  --secondary-foreground: oklch(0.985 0.02 45);
+  --muted: oklch(0.269 0.02 45);
+  --muted-foreground: oklch(0.708 0.02 45);
+  --accent: oklch(0.269 0.03 35);
+  --accent-foreground: oklch(0.985 0.02 35);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0.02 45);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --ring: hsl(var(--orange-400));
+  
+  /* Dark mode chart colors */
+  --chart-1: hsl(var(--orange-400));
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  
+  /* Dark mode sidebar */
+  --sidebar: oklch(0.205 0.02 45);
+  --sidebar-foreground: oklch(0.985 0.02 45);
+  --sidebar-primary: hsl(var(--orange-500));
+  --sidebar-primary-foreground: oklch(0.125 0.02 45);
+  --sidebar-accent: oklch(0.269 0.03 35);
+  --sidebar-accent-foreground: oklch(0.985 0.02 35);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: hsl(var(--orange-400));
 }
 
 @layer base {
@@ -118,5 +160,44 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Modern typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-semibold tracking-tight;
+  }
+  
+  /* Smooth focus styles */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Temporarily removing custom utilities to test basic Tailwind */
+
+@layer utilities {
+  /* Text selection with orange theme */
+  ::selection {
+    background-color: hsl(var(--orange-200));
+    color: hsl(var(--orange-900));
+  }
+  
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--orange-400));
+    border-radius: 2px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--orange-500));
   }
 }
