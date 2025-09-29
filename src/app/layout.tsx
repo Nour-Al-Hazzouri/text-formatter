@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Caveat, Crimson_Text } from "next/font/google";
 import "./globals.css";
 
+// Import providers
+import { AppProviders } from "@/components/providers";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -30,6 +33,13 @@ const crimsonText = Crimson_Text({
 export const metadata: Metadata = {
   title: "Text Formatter",
   description: "Transform messy text into organized, readable formats with intelligent pattern recognition",
+  keywords: ["text formatting", "pattern recognition", "document organization", "productivity"],
+  authors: [{ name: "Text Formatter Team" }],
+  viewport: "width=device-width, initial-scale=1",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ea580c" },
+    { media: "(prefers-color-scheme: dark)", color: "#ea580c" }
+  ],
 };
 
 export default function RootLayout({
@@ -38,11 +48,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head />
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} ${crimsonText.variable} font-content antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <AppProviders>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );
