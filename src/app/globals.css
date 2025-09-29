@@ -1,26 +1,283 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  
+  /* Base colors */
+  --background: oklch(0.99 0.005 45);
+  --foreground: oklch(0.125 0.02 45);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0.02 45);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.02 45);
+  
+  /* Modern Orange Primary Colors */
+  --primary-50: 33 100% 96%;
+  --primary-100: 34 100% 92%;
+  --primary-200: 32 98% 83%;
+  --primary-300: 31 97% 72%;
+  --primary-400: 27 96% 61%;
+  --primary-500: 25 95% 53%;
+  --primary-600: 21 90% 48%;
+  --primary-700: 17 88% 40%;
+  --primary-800: 15 80% 32%;
+  --primary-900: 15 75% 28%;
+  --primary-950: 13 81% 14%;
+  --primary: 25 95% 53%;
+  --primary-foreground: oklch(0.99 0.02 45);
+  
+  /* Orange Accent Colors */
+  --orange-50: 33 100% 96%;
+  --orange-100: 34 100% 92%;
+  --orange-200: 32 98% 83%;
+  --orange-300: 31 97% 72%;
+  --orange-400: 27 96% 61%;
+  --orange-500: 25 95% 53%;
+  --orange-600: 21 90% 48%;
+  --orange-700: 17 88% 40%;
+  --orange-800: 15 80% 32%;
+  --orange-900: 15 75% 28%;
+  --orange-950: 13 81% 14%;
+  
+  /* Supporting colors with orange warmth */
+  --secondary: oklch(0.97 0.013 45);
+  --secondary-foreground: oklch(0.205 0.02 45);
+  --muted: oklch(0.96 0.015 45);
+  --muted-foreground: oklch(0.556 0.02 45);
+  --accent: oklch(0.96 0.02 35);
+  --accent-foreground: oklch(0.205 0.02 35);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0.02 45);
+  --border: oklch(0.922 0.012 45);
+  --input: oklch(0.922 0.012 45);
+  --ring: hsl(var(--orange-500));
+  
+  /* Chart colors with orange theme integration */
+  --chart-1: hsl(var(--orange-500));
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* Sidebar colors */
+  --sidebar: oklch(0.985 0.008 45);
+  --sidebar-foreground: oklch(0.145 0.02 45);
+  --sidebar-primary: hsl(var(--orange-600));
+  --sidebar-primary-foreground: oklch(0.985 0.02 45);
+  --sidebar-accent: oklch(0.96 0.02 35);
+  --sidebar-accent-foreground: oklch(0.205 0.02 35);
+  --sidebar-border: oklch(0.922 0.012 45);
+  --sidebar-ring: hsl(var(--orange-500));
+  
+  /* Notebook-specific colors */
+  --notebook-paper: 43 10% 97%;
+  --notebook-binding: 43 15% 85%;
+  --notebook-margin: 220 20% 85%;
+  --notebook-ink: 220 15% 25%;
+  --notebook-shadow: 0 0% 0%;
+  --notebook-torn: 43 8% 92%;
+}
+
+.dark {
+  /* Dark mode with orange accents */
+  --background: oklch(0.145 0.015 45);
+  --foreground: oklch(0.985 0.02 45);
+  --card: oklch(0.205 0.02 45);
+  --card-foreground: oklch(0.985 0.02 45);
+  --popover: oklch(0.205 0.02 45);
+  --popover-foreground: oklch(0.985 0.02 45);
+  
+  /* Dark mode orange primary */
+  --primary: hsl(var(--orange-400));
+  --primary-foreground: oklch(0.125 0.02 45);
+  
+  /* Dark mode supporting colors */
+  --secondary: oklch(0.269 0.02 45);
+  --secondary-foreground: oklch(0.985 0.02 45);
+  --muted: oklch(0.269 0.02 45);
+  --muted-foreground: oklch(0.708 0.02 45);
+  --accent: oklch(0.269 0.03 35);
+  --accent-foreground: oklch(0.985 0.02 35);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0.02 45);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: hsl(var(--orange-400));
+  
+  /* Dark mode chart colors */
+  --chart-1: hsl(var(--orange-400));
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  
+  /* Dark mode sidebar */
+  --sidebar: oklch(0.205 0.02 45);
+  --sidebar-foreground: oklch(0.985 0.02 45);
+  --sidebar-primary: hsl(var(--orange-500));
+  --sidebar-primary-foreground: oklch(0.125 0.02 45);
+  --sidebar-accent: oklch(0.269 0.03 35);
+  --sidebar-accent-foreground: oklch(0.985 0.02 35);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: hsl(var(--orange-400));
+  
+  /* Dark mode notebook colors */
+  --notebook-paper: 43 8% 15%;
+  --notebook-binding: 43 12% 25%;
+  --notebook-margin: 220 15% 35%;
+  --notebook-ink: 43 15% 85%;
+  --notebook-shadow: 0 0% 0%;
+  --notebook-torn: 43 6% 20%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Modern typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-semibold tracking-tight;
+  }
+  
+  /* Smooth focus styles */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Temporarily removing custom utilities to test basic Tailwind */
+
+@layer utilities {
+  /* Text selection with orange theme */
+  ::selection {
+    background-color: hsl(var(--orange-200));
+    color: hsl(var(--orange-900));
+  }
+  
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--orange-400));
+    border-radius: 2px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--orange-500));
+  }
+  
+  /* Notebook-specific utility classes */
+  .notebook-paper {
+    background-color: hsl(var(--notebook-paper));
+    background-image: 
+      /* Ruled lines */
+      linear-gradient(transparent 23px, hsl(var(--notebook-margin) / 0.3) 24px),
+      /* Left margin */
+      linear-gradient(90deg, transparent 59px, hsl(var(--notebook-margin) / 0.5) 60px, transparent 61px);
+    background-size: 100% 25px, 100% 100%;
+  }
+  
+  .notebook-binding {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--notebook-binding)) 0%,
+      hsl(var(--notebook-binding) / 0.8) 50%,
+      hsl(var(--notebook-binding)) 100%
+    );
+    box-shadow: 
+      inset 2px 0 4px hsl(var(--notebook-shadow) / 0.1),
+      inset -2px 0 4px hsl(var(--notebook-shadow) / 0.05);
+  }
+  
+  .notebook-spiral {
+    background: 
+      radial-gradient(circle at 50% 0%, hsl(var(--notebook-binding)) 30%, transparent 31%),
+      radial-gradient(circle at 50% 100%, hsl(var(--notebook-binding)) 30%, transparent 31%);
+    background-size: 20px 12px;
+    background-position: 0 0, 0 6px;
+    box-shadow: var(--spiral);
+  }
+  
+  .notebook-torn-top {
+    position: relative;
+  }
+  
+  .notebook-torn-top::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: hsl(var(--notebook-torn));
+    clip-path: polygon(
+      0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%,
+      30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%,
+      60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%,
+      90% 0%, 95% 100%, 100% 0%
+    );
+  }
+  
+  .notebook-shadow {
+    box-shadow: 
+      0 4px 8px hsl(var(--notebook-shadow) / 0.1),
+      0 1px 3px hsl(var(--notebook-shadow) / 0.08);
+  }
+  
+  .notebook-shadow-lifted {
+    box-shadow: 
+      0 8px 25px hsl(var(--notebook-shadow) / 0.15),
+      0 3px 10px hsl(var(--notebook-shadow) / 0.1);
+  }
 }
