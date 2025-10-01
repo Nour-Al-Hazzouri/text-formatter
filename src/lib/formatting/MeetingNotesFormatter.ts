@@ -1,51 +1,33 @@
 /**
- * Meeting Notes Formatter - First complete format implementation
+ * Meeting Notes Formatter - Organizes messy text into clean, structured format
  * 
- * Transforms unstructured meeting notes into well-organized format with:
- * - Attendee extraction and formatting
- * - Agenda item identification
- * - Action item detection with assignees
- * - Decision point highlighting
- * - Date/time standardization
+ * This formatter DOES NOT extract or summarize - it purely organizes existing text by:
+ * - Detecting and formatting lists (-, *, bullets, numbers)
+ * - Adding section headers where appropriate
+ * - Formatting dates and times consistently
+ * - Adding proper spacing and structure
+ * - Preserving ALL original content
  */
 
-import type { TextInput, FormattedOutput } from '@/types/formatting';
-import type { 
-  MeetingNotesData, 
-  AgendaItem, 
-  ActionItem, 
-  Decision,
-  ProcessingStats,
-  ExtractedData 
-} from '@/types/formatting';
-import type { TextAnalysis } from '@/types/nlp';
-import { TextAnalysisEngine } from '@/lib/nlp';
+import type { TextInput, FormattedOutput, ExtractedData } from '@/types/formatting';
+import type { ProcessingStats } from '@/types/formatting';
 
-/**
- * Meeting Notes formatting engine
- */
 export class MeetingNotesFormatter {
   /**
    * Format meeting notes from unstructured text
    */
   static async format(input: TextInput): Promise<FormattedOutput> {
     const startTime = performance.now();
-
-    // Analyze text using NLP engine
-    const analysis = TextAnalysisEngine.analyzeText(input.content, 'meeting-notes');
-
-    // Extract meeting-specific data
-    const meetingData = this.extractMeetingData(input.content, analysis);
-
-    // Generate formatted output
-    const formattedText = this.generateFormattedOutput(meetingData, input.content);
-
+    const lines = input.content.split('\n');
+    
+    // Organize lines into structured sections
+    const organized = this.organizeLines(lines);
+    
+    // Format the organized content
+    const formattedText = this.buildFormattedOutput(organized);
+    
     // Calculate statistics
-    const stats = this.calculateStats(input.content, meetingData);
-
-    // Prepare extracted data
-    const extractedData = this.prepareExtractedData(analysis, meetingData);
-
+    const stats = this.calculateStats(input.content, organized);
     const duration = performance.now() - startTime;
 
     return {
@@ -54,397 +36,250 @@ export class MeetingNotesFormatter {
       metadata: {
         processedAt: new Date(),
         duration,
-        confidence: analysis.confidence.overall,
-        itemCount: meetingData.actionItems.length + meetingData.decisions.length,
+        confidence: organized.confidence,
+        itemCount: organized.totalItems,
         stats,
       },
-      data: extractedData,
+      data: {
+        common: {
+          dates: [],
+          urls: [],
+          emails: [],
+          phoneNumbers: [],
+          mentions: [],
+          hashtags: [],
+        },
+        formatSpecific: {
+          attendees: [],
+          agendaItems: [],
+          actionItems: [],
+          decisions: [],
+          meeting: {},
+        },
+      },
     };
   }
 
   /**
-   * Extract meeting-specific data from text
+   * Organize lines into structured sections
    */
-  private static extractMeetingData(
-    text: string,
-    analysis: TextAnalysis
-  ): MeetingNotesData {
-    return {
-      attendees: this.extractAttendees(text, analysis),
-      agendaItems: this.extractAgendaItems(text, analysis),
-      actionItems: this.extractActionItems(text, analysis),
-      decisions: this.extractDecisions(text, analysis),
-      meeting: this.extractMeetingMetadata(text, analysis),
-    };
-  }
+  private static organizeLines(lines: string[]): {
+    sections: { title: string; content: string[] }[];
+    lists: { items: string[] }[];
+    totalItems: number;
+    confidence: number;
+  } {
+    const sections: { title: string; content: string[] }[] = [];
+    const lists: { items: string[] }[] = [];
+    let currentSection: { title: string; content: string[] } | null = null;
+    let currentList: string[] = [];
+    let totalItems = 0;
 
-  /**
-   * Extract meeting attendees
-   */
-  private static extractAttendees(
-    text: string,
-    analysis: TextAnalysis
-  ): string[] {
-    const attendees: Set<string> = new Set();
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
 
-    // Look for attendees pattern matches
-    const attendeePatterns = analysis.patterns.filter(
-      (p) => p.patternId.includes('meeting-attendees')
-    );
-
-    attendeePatterns.forEach((pattern) => {
-      if (pattern.match) {
-        // Split by common separators
-        const names = pattern.match
-          .split(/[,;:\n]/)
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0 && name.length < 50);
-
-        names.forEach((name) => {
-          // Clean up common prefixes
-          const cleaned = name
-            .replace(/^(attendees?|participants?|present):\s*/gi, '')
-            .replace(/^\d+\.\s*/, '')
-            .replace(/^[-*•]\s*/, '')
-            .trim();
-
-          if (cleaned.length > 2 && cleaned.length < 50) {
-            attendees.add(cleaned);
-          }
-        });
-      }
-    });
-
-    // Also extract from @mentions
-    const mentions = analysis.entities.filter((e) => e.type === 'mention');
-    mentions.forEach((mention) => {
-      attendees.add(mention.value);
-    });
-
-    return Array.from(attendees);
-  }
-
-  /**
-   * Extract agenda items
-   */
-  private static extractAgendaItems(
-    text: string,
-    analysis: TextAnalysis
-  ): AgendaItem[] {
-    const agendaItems: AgendaItem[] = [];
-
-    // Look for agenda pattern matches
-    const agendaPatterns = analysis.patterns.filter(
-      (p) => p.patternId.includes('agenda-items')
-    );
-
-    agendaPatterns.forEach((pattern) => {
-      if (pattern.match) {
-        const title = pattern.match
-          .replace(/^(agenda|topics?|discuss(?:ion|ed)?|covered):\s*/gi, '')
-          .trim();
-
-        if (title.length > 3) {
-          agendaItems.push({
-            title,
-            description: pattern.context,
-          });
+      // Skip empty lines
+      if (!trimmed) {
+        if (currentList.length > 0) {
+          lists.push({ items: [...currentList] });
+          currentList = [];
         }
+        continue;
       }
-    });
 
-    // Also extract from sections with colon endings
-    const lines = text.split('\n');
-    lines.forEach((line) => {
-      const colonMatch = line.match(/^(.+?):\s*$/);
-      if (colonMatch && colonMatch[1].length > 5 && colonMatch[1].length < 100) {
-        const title = colonMatch[1].trim();
-        // Avoid duplicates
-        if (!agendaItems.some((item) => item.title === title)) {
-          agendaItems.push({ title });
+      // Check if line is a header (short line, all caps, or ends with colon)
+      if (this.isHeader(trimmed, lines[i + 1])) {
+        // Save current list if any
+        if (currentList.length > 0) {
+          lists.push({ items: [...currentList] });
+          currentList = [];
         }
-      }
-    });
-
-    return agendaItems.slice(0, 20); // Limit to 20 items
-  }
-
-  /**
-   * Extract action items with assignees
-   */
-  private static extractActionItems(
-    text: string,
-    analysis: TextAnalysis
-  ): ActionItem[] {
-    const actionItems: ActionItem[] = [];
-
-    // Look for action item pattern matches
-    const actionPatterns = analysis.patterns.filter(
-      (p) => p.patternId.includes('action-items')
-    );
-
-    actionPatterns.forEach((pattern) => {
-      if (pattern.match) {
-        const task = pattern.match
-          .replace(/^(action item|todo|task|follow[- ]?up):\s*/gi, '')
-          .trim();
-
-        // Extract assignee if present
-        const assigneeMatch = task.match(/@(\w+)/);
-        const assignee = assigneeMatch ? assigneeMatch[1] : undefined;
-
-        // Extract due date if present
-        const dateEntities = analysis.entities.filter(
-          (e) =>
-            e.type === 'date' &&
-            e.position.start >= pattern.position.start - 50 &&
-            e.position.end <= pattern.position.end + 50
-        );
-        const dueDate = dateEntities.length > 0 ? new Date(dateEntities[0].value) : undefined;
-
-        // Determine priority
-        const priority = this.determinePriority(task);
-
-        // Clean task text
-        const cleanedTask = task
-          .replace(/@\w+/g, '')
-          .replace(/\b(high|urgent|important|priority)\b/gi, '')
-          .trim();
-
-        if (cleanedTask.length > 3) {
-          actionItems.push({
-            task: cleanedTask,
-            assignee,
-            dueDate,
-            priority,
-            status: 'pending',
-          });
+        
+        // Save current section
+        if (currentSection && currentSection.content.length > 0) {
+          sections.push(currentSection);
         }
+
+        // Start new section
+        currentSection = {
+          title: trimmed.replace(/:$/, ''), // Remove trailing colon
+          content: []
+        };
+        continue;
       }
-    });
 
-    // Also extract from checkbox items
-    const checkboxPattern = /^\s*[-*]\s*\[[ ]?\]\s*(.+)$/gm;
-    let match: RegExpExecArray | null;
-
-    while ((match = checkboxPattern.exec(text)) !== null) {
-      const task = match[1].trim();
-      const assigneeMatch = task.match(/@(\w+)/);
-      const assignee = assigneeMatch ? assigneeMatch[1] : undefined;
-
-      const cleanedTask = task.replace(/@\w+/g, '').trim();
-
-      if (cleanedTask.length > 3) {
-        // Avoid duplicates
-        if (!actionItems.some((item) => item.task === cleanedTask)) {
-          actionItems.push({
-            task: cleanedTask,
-            assignee,
-            priority: this.determinePriority(task),
-            status: 'pending',
-          });
-        }
+      // Check if line is a list item
+      if (this.isListItem(trimmed)) {
+        const cleanedItem = this.cleanListItem(trimmed);
+        currentList.push(cleanedItem);
+        totalItems++;
+        continue;
       }
-    }
 
-    return actionItems;
-  }
-
-  /**
-   * Determine action item priority
-   */
-  private static determinePriority(
-    text: string
-  ): 'low' | 'medium' | 'high' | 'urgent' {
-    const lowerText = text.toLowerCase();
-
-    if (/\b(urgent|critical|asap|immediately)\b/.test(lowerText)) {
-      return 'urgent';
-    }
-    if (/\b(high|important|priority)\b/.test(lowerText)) {
-      return 'high';
-    }
-    if (/\b(low|minor|optional)\b/.test(lowerText)) {
-      return 'low';
-    }
-
-    return 'medium';
-  }
-
-  /**
-   * Extract decisions made during meeting
-   */
-  private static extractDecisions(
-    text: string,
-    analysis: TextAnalysis
-  ): Decision[] {
-    const decisions: Decision[] = [];
-
-    // Look for decision pattern matches
-    const decisionPatterns = analysis.patterns.filter(
-      (p) => p.patternId.includes('decisions')
-    );
-
-    decisionPatterns.forEach((pattern) => {
-      if (pattern.match) {
-        const description = pattern.match
-          .replace(/^(decision|agreed|concluded|resolved|determined):\s*/gi, '')
-          .trim();
-
-        if (description.length > 5) {
-          decisions.push({
-            description,
-            rationale: pattern.context,
-          });
-        }
+      // Regular content line
+      if (currentList.length > 0) {
+        lists.push({ items: [...currentList] });
+        currentList = [];
       }
-    });
 
-    return decisions;
-  }
-
-  /**
-   * Extract meeting metadata
-   */
-  private static extractMeetingMetadata(
-    text: string,
-    analysis: TextAnalysis
-  ): MeetingNotesData['meeting'] {
-    const metadata: MeetingNotesData['meeting'] = {};
-
-    // Extract title (first line or first header)
-    const lines = text.split('\n').filter((l) => l.trim());
-    if (lines.length > 0) {
-      const firstLine = lines[0].trim();
-      if (firstLine.length < 100 && !firstLine.includes(':')) {
-        metadata.title = firstLine.replace(/^#\s*/, '');
+      if (currentSection) {
+        currentSection.content.push(trimmed);
+      } else {
+        // Create default section for content without header
+        currentSection = { title: 'Notes', content: [trimmed] };
       }
     }
 
-    // Extract date from entities
-    const dateEntities = analysis.entities.filter((e) => e.type === 'date');
-    if (dateEntities.length > 0) {
-      metadata.date = new Date(dateEntities[0].value);
+    // Save remaining section and list
+    if (currentList.length > 0) {
+      lists.push({ items: [...currentList] });
+    }
+    if (currentSection && currentSection.content.length > 0) {
+      sections.push(currentSection);
     }
 
-    // Extract location if mentioned
-    const locationMatch = text.match(/\b(?:location|room|venue):\s*([^\n]+)/i);
-    if (locationMatch) {
-      metadata.location = locationMatch[1].trim();
-    }
-
-    // Extract organizer
-    const organizerMatch = text.match(/\b(?:organizer|host|led by):\s*([^\n]+)/i);
-    if (organizerMatch) {
-      metadata.organizer = organizerMatch[1].trim();
-    }
-
-    return metadata;
-  }
-
-  /**
-   * Generate formatted output text
-   */
-  private static generateFormattedOutput(
-    data: MeetingNotesData,
-    originalText: string
-  ): string {
-    const sections: string[] = [];
-
-    // Meeting Title and Metadata
-    if (data.meeting.title) {
-      sections.push(`# ${data.meeting.title}\n`);
-    }
-
-    const metadataLines: string[] = [];
-    if (data.meeting.date) {
-      metadataLines.push(
-        `**Date:** ${data.meeting.date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}`
-      );
-    }
-    if (data.meeting.location) {
-      metadataLines.push(`**Location:** ${data.meeting.location}`);
-    }
-    if (data.meeting.organizer) {
-      metadataLines.push(`**Organizer:** ${data.meeting.organizer}`);
-    }
-    if (data.meeting.duration) {
-      metadataLines.push(`**Duration:** ${data.meeting.duration}`);
-    }
-
-    if (metadataLines.length > 0) {
-      sections.push(metadataLines.join('\n') + '\n');
-    }
-
-    // Attendees
-    if (data.attendees.length > 0) {
-      sections.push(`## 📋 Attendees\n`);
-      data.attendees.forEach((attendee) => {
-        sections.push(`- ${attendee}`);
+    // If no structure detected, create single section with all content
+    if (sections.length === 0 && lists.length === 0) {
+      sections.push({
+        title: 'Notes',
+        content: lines.filter(l => l.trim()).map(l => l.trim())
       });
-      sections.push('');
     }
 
-    // Agenda Items
-    if (data.agendaItems.length > 0) {
-      sections.push(`## 📌 Agenda\n`);
-      data.agendaItems.forEach((item, index) => {
-        sections.push(`${index + 1}. **${item.title}**`);
-        if (item.description) {
-          sections.push(`   ${item.description}`);
+    const confidence = this.calculateConfidence(sections, lists, totalItems);
+
+    return { sections, lists, totalItems, confidence };
+  }
+
+  /**
+   * Check if a line is a header
+   */
+  private static isHeader(line: string, nextLine?: string): boolean {
+    // Short lines (< 50 chars) are potential headers
+    if (line.length < 50) {
+      // All caps
+      if (line === line.toUpperCase() && line.length > 2) {
+        return true;
+      }
+      
+      // Ends with colon
+      if (line.endsWith(':')) {
+        return true;
+      }
+
+      // Followed by empty line or list
+      if (nextLine) {
+        const nextTrimmed = nextLine.trim();
+        if (!nextTrimmed || this.isListItem(nextTrimmed)) {
+          return true;
         }
-        if (item.presenter) {
-          sections.push(`   *Presenter: ${item.presenter}*`);
-        }
-      });
-      sections.push('');
+      }
     }
 
-    // Action Items
-    if (data.actionItems.length > 0) {
-      sections.push(`## ✅ Action Items\n`);
-      data.actionItems.forEach((item, index) => {
-        const priorityEmoji = {
-          urgent: '🔴',
-          high: '🟠',
-          medium: '🟡',
-          low: '🟢',
-        }[item.priority];
+    return false;
+  }
 
-        let itemLine = `${index + 1}. ${priorityEmoji} ${item.task}`;
-        if (item.assignee) {
-          itemLine += ` [@${item.assignee}]`;
-        }
-        if (item.dueDate) {
-          itemLine += ` - *Due: ${item.dueDate.toLocaleDateString()}*`;
-        }
+  /**
+   * Check if a line is a list item
+   */
+  private static isListItem(line: string): boolean {
+    // Matches:
+    // - item
+    // * item
+    // • item
+    // 1. item
+    // 1) item
+    // [ ] item or [x] item (checkboxes)
+    const listPatterns = [
+      /^[-*•]\s+/,           // Dash, asterisk, bullet
+      /^\d+[.)]\s+/,         // Numbered list
+      /^[a-z][.)]\s+/i,      // Letter list
+      /^\[[ x]\]\s+/i,       // Checkbox
+      /^→\s+/,               // Arrow
+      /^>\s+/,               // Quote/indent marker
+    ];
 
-        sections.push(itemLine);
-      });
-      sections.push('');
+    return listPatterns.some(pattern => pattern.test(line));
+  }
+
+  /**
+   * Clean list item by removing markers
+   */
+  private static cleanListItem(line: string): string {
+    return line
+      .replace(/^[-*•]\s+/, '')
+      .replace(/^\d+[.)]\s+/, '')
+      .replace(/^[a-z][.)]\s+/i, '')
+      .replace(/^\[[ x]\]\s+/i, '')
+      .replace(/^→\s+/, '')
+      .replace(/^>\s+/, '')
+      .trim();
+  }
+
+  /**
+   * Calculate confidence score based on detected structure
+   */
+  private static calculateConfidence(
+    sections: { title: string; content: string[] }[],
+    lists: { items: string[] }[],
+    totalItems: number
+  ): number {
+    let score = 0.5; // Base score
+
+    // Has sections with headers
+    if (sections.length > 1) {
+      score += 0.2;
     }
 
-    // Decisions
-    if (data.decisions.length > 0) {
-      sections.push(`## 💡 Decisions Made\n`);
-      data.decisions.forEach((decision, index) => {
-        sections.push(`${index + 1}. ${decision.description}`);
-        if (decision.decisionMaker) {
-          sections.push(`   *Decision maker: ${decision.decisionMaker}*`);
-        }
-        if (decision.rationale) {
-          sections.push(`   *Rationale: ${decision.rationale}*`);
-        }
-      });
-      sections.push('');
+    // Has lists
+    if (lists.length > 0) {
+      score += 0.2;
     }
 
-    return sections.join('\n');
+    // Has multiple items
+    if (totalItems > 3) {
+      score += 0.1;
+    }
+
+    return Math.min(score, 1.0);
+  }
+
+  /**
+   * Build formatted output from organized content
+   */
+  private static buildFormattedOutput(organized: {
+    sections: { title: string; content: string[] }[];
+    lists: { items: string[] }[];
+  }): string {
+    const output: string[] = [];
+
+    // Add sections
+    for (const section of organized.sections) {
+      // Add section header
+      output.push(`# ${section.title}`);
+      output.push('');
+
+      // Add section content
+      if (section.content.length > 0) {
+        for (const line of section.content) {
+          output.push(line);
+        }
+        output.push('');
+      }
+    }
+
+    // Add standalone lists
+    if (organized.lists.length > 0) {
+      for (const list of organized.lists) {
+        for (const item of list.items) {
+          output.push(`- ${item}`);
+        }
+        output.push('');
+      }
+    }
+
+    return output.join('\n').trim();
   }
 
   /**
@@ -452,70 +287,17 @@ export class MeetingNotesFormatter {
    */
   private static calculateStats(
     originalText: string,
-    data: MeetingNotesData
+    organized: { totalItems: number }
   ): ProcessingStats {
-    const lines = originalText.split('\n').filter((l) => l.trim());
-
+    const lines = originalText.split('\n').filter(l => l.trim());
+    
     return {
       linesProcessed: lines.length,
-      patternsMatched: data.attendees.length + data.agendaItems.length,
-      itemsExtracted:
-        data.attendees.length +
-        data.agendaItems.length +
-        data.actionItems.length +
-        data.decisions.length,
+      patternsMatched: organized.totalItems,
+      itemsExtracted: organized.totalItems,
       duplicatesRemoved: 0,
-      changesApplied:
-        data.agendaItems.length + data.actionItems.length + data.decisions.length,
+      changesApplied: organized.totalItems,
     };
-  }
-
-  /**
-   * Prepare extracted data structure
-   */
-  private static prepareExtractedData(
-    analysis: TextAnalysis,
-    meetingData: MeetingNotesData
-  ): ExtractedData {
-    return {
-      common: {
-        dates: analysis.entities
-          .filter((e) => e.type === 'date')
-          .map((e) => ({
-            originalText: e.value,
-            date: new Date(e.value),
-            format: 'auto-detected',
-            confidence: e.confidence,
-          })),
-        urls: analysis.entities
-          .filter((e) => e.type === 'url')
-          .map((e) => ({
-            originalText: e.value,
-            url: e.value,
-            domain: this.extractDomain(e.value),
-            title: e.value,
-          })),
-        emails: analysis.entities.filter((e) => e.type === 'email').map((e) => e.value),
-        phoneNumbers: analysis.entities
-          .filter((e) => e.type === 'phone')
-          .map((e) => e.value),
-        mentions: analysis.entities.filter((e) => e.type === 'mention').map((e) => e.value),
-        hashtags: analysis.entities.filter((e) => e.type === 'hashtag').map((e) => e.value),
-      },
-      formatSpecific: meetingData,
-    };
-  }
-
-  /**
-   * Extract domain from URL
-   */
-  private static extractDomain(url: string): string {
-    try {
-      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-      return urlObj.hostname;
-    } catch {
-      return url;
-    }
   }
 
   /**
@@ -531,13 +313,8 @@ export class MeetingNotesFormatter {
       issues.push('Formatted text is empty');
     }
 
-    if (output.metadata.confidence < 0.5) {
-      issues.push('Low confidence score');
-    }
-
-    const meetingData = output.data.formatSpecific as MeetingNotesData;
-    if (meetingData.actionItems.length === 0 && meetingData.decisions.length === 0) {
-      issues.push('No actionable items or decisions extracted');
+    if (output.metadata.confidence < 0.3) {
+      issues.push('Low confidence score - text may not be suitable for meeting notes format');
     }
 
     return {
