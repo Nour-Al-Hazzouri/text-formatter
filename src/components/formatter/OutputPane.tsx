@@ -21,12 +21,18 @@ import {
   Download, 
   Eye, 
   EyeOff,
-  Sparkles,
-  AlertCircle
+  AlertCircle,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FormatType } from '@/types';
 import type { FormattedOutput } from '@/types/formatting';
+import { 
+  ProcessingIndicator, 
+  ConfidenceBadge, 
+  AnalysisBreakdown,
+  PerformanceMetrics
+} from '@/components/feedback';
 
 export interface OutputPaneProps {
   formatType: FormatType;
@@ -36,6 +42,7 @@ export interface OutputPaneProps {
   showComparison?: boolean;
   onToggleComparison?: () => void;
   onExport?: () => void;
+  showMetrics?: boolean;
   className?: string;
 }
 
@@ -56,6 +63,7 @@ export function OutputPane({
   showComparison = false,
   onToggleComparison,
   onExport,
+  showMetrics = true,
   className,
 }: OutputPaneProps) {
   const [isCopied, setIsCopied] = useState(false);
@@ -81,14 +89,12 @@ export function OutputPane({
   const renderFormattedContent = () => {
     if (isProcessing) {
       return (
-        <div className="flex items-center justify-center h-full min-h-[400px]">
-          <div className="text-center">
-            <Sparkles className="w-12 h-12 text-orange-500 mx-auto mb-4 animate-pulse" />
-            <p className="text-gray-600 font-content">Processing your text...</p>
-            <p className="text-sm text-gray-500 font-content mt-2">
-              Applying {formatType.replace('-', ' ')} formatting
-            </p>
-          </div>
+        <div className="h-full min-h-[400px]">
+          <ProcessingIndicator
+            isProcessing={true}
+            formatType={formatType}
+            size="md"
+          />
         </div>
       );
     }
@@ -118,18 +124,17 @@ export function OutputPane({
     if (formattedOutput) {
       return (
         <div className="space-y-4">
-          {/* Metadata Badge */}
+          {/* Metadata Badges */}
           {formattedOutput.metadata && (
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <Badge variant="secondary" className="bg-green-50 text-green-700">
                 <Check className="w-3 h-3 mr-1" />
                 Formatted
               </Badge>
+              <ConfidenceBadge confidence={formattedOutput.metadata.confidence} />
               <Badge variant="outline">
-                Confidence: {Math.round(formattedOutput.metadata.confidence * 100)}%
-              </Badge>
-              <Badge variant="outline">
-                {formattedOutput.metadata.itemCount} items extracted
+                <TrendingUp className="w-3 h-3 mr-1" />
+                {formattedOutput.metadata.itemCount} items
               </Badge>
               <Badge variant="outline">
                 {formattedOutput.metadata.duration.toFixed(0)}ms
@@ -158,6 +163,19 @@ export function OutputPane({
                   </ul>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Analysis and Performance Metrics */}
+          {showMetrics && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
+              <AnalysisBreakdown output={formattedOutput} />
+              <PerformanceMetrics
+                duration={formattedOutput.metadata.duration}
+                itemCount={formattedOutput.metadata.itemCount}
+                linesProcessed={formattedOutput.metadata.stats.linesProcessed}
+                showDetails={true}
+              />
             </div>
           )}
         </div>
