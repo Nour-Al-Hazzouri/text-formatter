@@ -33,6 +33,7 @@ import {
   AnalysisBreakdown,
   PerformanceMetrics
 } from '@/components/feedback';
+import { ExportOptions } from './ExportOptions';
 
 export interface OutputPaneProps {
   formatType: FormatType;
@@ -320,6 +321,16 @@ export function OutputPane({
             )}
           </div>
         </div>
+        
+        {/* Export Options */}
+        {formattedOutput && (
+          <div className="mt-4">
+            <ExportOptions 
+              content={formattedOutput}
+              isOpen={true}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
