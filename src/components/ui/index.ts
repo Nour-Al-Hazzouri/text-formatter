@@ -55,6 +55,8 @@ export {
 export { Skeleton } from './skeleton';
 export { Badge } from './badge';
 export { Progress } from './progress';
+export { Switch } from './switch';
+export { Label } from './label';
 
 // Custom components
 export { Heading, Paragraph, Code, Blockquote, List, ListItem } from './typography';
