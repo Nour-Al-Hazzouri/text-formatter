@@ -47,15 +47,15 @@ interface HistoryDashboardProps {
 }
 
 /**
- * Format type icons and colors
+ * Format type icons and colors - WCAG 2.1 AA compliant
  */
 const FORMAT_CONFIG: Record<FormatType, { icon: string; color: string; label: string }> = {
-  'meeting-notes': { icon: '📝', color: 'bg-blue-100 text-blue-700', label: 'Meeting Notes' },
-  'task-lists': { icon: '✅', color: 'bg-green-100 text-green-700', label: 'Task Lists' },
-  'shopping-lists': { icon: '🛒', color: 'bg-purple-100 text-purple-700', label: 'Shopping Lists' },
-  'journal-notes': { icon: '📔', color: 'bg-orange-100 text-orange-700', label: 'Journal Notes' },
-  'research-notes': { icon: '📚', color: 'bg-indigo-100 text-indigo-700', label: 'Research Notes' },
-  'study-notes': { icon: '🎓', color: 'bg-pink-100 text-pink-700', label: 'Study Notes' }
+  'meeting-notes': { icon: '📝', color: 'bg-blue-50 text-blue-800 border-blue-200', label: 'Meeting Notes' },
+  'task-lists': { icon: '✅', color: 'bg-green-50 text-green-800 border-green-200', label: 'Task Lists' },
+  'shopping-lists': { icon: '🛒', color: 'bg-purple-50 text-purple-800 border-purple-200', label: 'Shopping Lists' },
+  'journal-notes': { icon: '📔', color: 'bg-orange-50 text-orange-800 border-orange-200', label: 'Journal Notes' },
+  'research-notes': { icon: '📚', color: 'bg-indigo-50 text-indigo-800 border-indigo-200', label: 'Research Notes' },
+  'study-notes': { icon: '🎓', color: 'bg-pink-50 text-pink-800 border-pink-200', label: 'Study Notes' }
 };
 
 export function HistoryDashboard({ 
@@ -182,7 +182,7 @@ export function HistoryDashboard({
                 <div className="font-medium text-gray-900 dark:text-gray-100">
                   {formatConfig.label}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                   {formatDate(entry.timestamp)}
                 </div>
               </div>
@@ -214,20 +214,20 @@ export function HistoryDashboard({
           <div className="space-y-3">
             {/* Input preview */}
             <div>
-              <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">
                 Input ({entry.inputSize.toLocaleString()} chars)
               </div>
-              <div className="text-sm text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 p-2 rounded">
+              <div className="text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
                 {entry.inputPreview}
               </div>
             </div>
             
             {/* Output preview */}
             <div>
-              <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">
                 Formatted Output
               </div>
-              <div className="text-sm text-gray-800 dark:text-gray-200 bg-orange-50 dark:bg-orange-950/20 p-2 rounded">
+              <div className="text-sm text-gray-900 dark:text-gray-100 bg-orange-100 dark:bg-orange-950/30 p-3 rounded border border-orange-200 dark:border-orange-800">
                 {entry.outputPreview}
               </div>
             </div>
@@ -236,7 +236,7 @@ export function HistoryDashboard({
             {entry.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {entry.tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge key={tag} variant="secondary" className="text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium">
                     #{tag}
                   </Badge>
                 ))}
@@ -245,13 +245,13 @@ export function HistoryDashboard({
             
             {/* Notes */}
             {entry.notes && (
-              <div className="text-sm text-gray-600 dark:text-gray-400 italic">
+              <div className="text-sm text-gray-800 dark:text-gray-200 italic font-medium bg-blue-50 dark:bg-blue-950/20 p-2 rounded border border-blue-200 dark:border-blue-800">
                 {entry.notes}
               </div>
             )}
             
             {/* Metadata */}
-            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+            <div className="flex items-center gap-4 text-xs text-gray-700 dark:text-gray-300 pt-2 border-t border-gray-200 dark:border-gray-600 font-medium">
               <span>⏱️ {entry.processingMetadata.duration.toFixed(1)}ms</span>
               <span>📊 {entry.processingMetadata.itemCount} items</span>
               {entry.templateId && <span>📋 From template</span>}
@@ -262,6 +262,7 @@ export function HistoryDashboard({
               <Button
                 size="sm"
                 variant="outline"
+                className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400 hover:text-orange-800 font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEntrySelect?.(entry);
@@ -271,7 +272,8 @@ export function HistoryDashboard({
               </Button>
               <Button
                 size="sm"
-                variant="ghost"
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800 font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(entry.outputPreview);
@@ -281,8 +283,8 @@ export function HistoryDashboard({
               </Button>
               <Button
                 size="sm"
-                variant="ghost"
-                className="text-red-500 hover:text-red-700"
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 hover:text-red-800 font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(entry);
@@ -300,36 +302,36 @@ export function HistoryDashboard({
   return (
     <div className={`history-dashboard ${className}`}>
       {/* Header with stats */}
-      <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-        <h2 className="text-xl font-handwritten text-orange-900 dark:text-orange-100 mb-3">
+      <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
+        <h2 className="text-xl font-handwritten text-orange-800 dark:text-orange-200 mb-4">
           📊 Format History Dashboard
         </h2>
         
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-semibold text-orange-700 dark:text-orange-300">
+              <div className="font-bold text-orange-800 dark:text-orange-200 text-lg">
                 {stats.totalTransformations.toLocaleString()}
               </div>
-              <div className="text-orange-600 dark:text-orange-400">Total Formats</div>
+              <div className="text-orange-700 dark:text-orange-300 font-medium">Total Formats</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-blue-700 dark:text-blue-300">
+              <div className="font-bold text-blue-800 dark:text-blue-200 text-lg">
                 {stats.averageConfidence.toFixed(1)}%
               </div>
-              <div className="text-blue-600 dark:text-blue-400">Avg Confidence</div>
+              <div className="text-blue-700 dark:text-blue-300 font-medium">Avg Confidence</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-green-700 dark:text-green-300">
+              <div className="font-bold text-green-800 dark:text-green-200 text-lg">
                 {stats.recentActivity}
               </div>
-              <div className="text-green-600 dark:text-green-400">This Week</div>
+              <div className="text-green-700 dark:text-green-300 font-medium">This Week</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-purple-700 dark:text-purple-300">
+              <div className="font-bold text-purple-800 dark:text-purple-200 text-lg">
                 {(stats.storageUsed / 1024 / 1024).toFixed(1)} MB
               </div>
-              <div className="text-purple-600 dark:text-purple-400">Storage Used</div>
+              <div className="text-purple-700 dark:text-purple-300 font-medium">Storage Used</div>
             </div>
           </div>
         )}
@@ -350,14 +352,14 @@ export function HistoryDashboard({
         
         {/* Format filters */}
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
             Filter by format:
           </span>
           {Object.entries(FORMAT_CONFIG).map(([format, config]) => (
             <Badge
               key={format}
               variant="outline"
-              className={`cursor-pointer hover:${config.color}`}
+              className={`cursor-pointer ${config.color} hover:opacity-80 transition-opacity font-medium border-2`}
               onClick={() => {
                 const currentFormats = searchOptions.formats || [];
                 const newFormats = currentFormats.includes(format as FormatType)
@@ -375,19 +377,19 @@ export function HistoryDashboard({
       {/* Entries list */}
       <div className="space-y-4">
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-gray-700 dark:text-gray-300 font-medium">
             Loading history...
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-gray-700 dark:text-gray-300">
             <div className="text-4xl mb-2">📝</div>
-            <div>No history entries found</div>
-            <div className="text-sm mt-1">Start formatting text to build your history</div>
+            <div className="font-medium">No history entries found</div>
+            <div className="text-sm mt-1 text-gray-600 dark:text-gray-400">Start formatting text to build your history</div>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                 Showing {entries.length} of {total.toLocaleString()} entries
               </div>
               
@@ -395,6 +397,7 @@ export function HistoryDashboard({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
                   disabled={searchOptions.pagination.page === 1}
                   onClick={() => setSearchOptions(prev => ({
                     ...prev,
@@ -404,13 +407,14 @@ export function HistoryDashboard({
                   Previous
                 </Button>
                 
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                   Page {searchOptions.pagination.page}
                 </span>
                 
                 <Button
                   variant="outline"
                   size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
                   disabled={entries.length < searchOptions.pagination.limit}
                   onClick={() => setSearchOptions(prev => ({
                     ...prev,
