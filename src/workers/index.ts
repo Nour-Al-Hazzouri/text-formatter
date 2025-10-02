@@ -1,12 +1,11 @@
 /**
- * Web Workers Module - Main Export File
+ * Workers Index - Central export point for all Web Workers
  * 
- * Exports all worker-related functionality including base classes,
- * communication utilities, pool management, and React hooks.
+ * Manages worker instantiation and communication for text processing
  */
 
-// Base worker classes
 export { BaseWorker } from './base/BaseWorker';
+export { WorkerPool } from './pool/WorkerPool';
 
 // Communication utilities
 export { 
@@ -24,16 +23,20 @@ export {
   type ErrorRecoveryConfig
 } from './utils/ErrorRecovery';
 
-// Worker pool management
-export { 
-  WorkerPool,
-  type WorkerPoolEvents 
-} from './pool/WorkerPool';
+// Worker URLs for dynamic loading
+export const WORKER_URLS = {
+  meetingNotes: '/workers/formatters/meetingNotes.worker.js',
+  taskLists: '/workers/formatters/taskLists.worker.js',
+  shoppingLists: '/workers/formatters/shoppingLists.worker.js',
+  textProcessor: '/workers/processors/TextProcessor.worker.js',
+} as const;
+
+// Worker types
+export type WorkerType = keyof typeof WORKER_URLS;
 
 // React hooks
 export { 
   useWorkerPool,
-  type UseWorkerPoolConfig,
   type UseWorkerPoolResult,
   type ProcessingOptions as WorkerProcessingOptions
 } from '@/hooks/workers/useWorkerPool';

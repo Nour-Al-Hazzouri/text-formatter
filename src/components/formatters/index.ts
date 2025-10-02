@@ -5,10 +5,10 @@
  */
 
 export { TaskListDisplay } from './TaskListDisplay';
+export { ShoppingListDisplay } from './ShoppingListDisplay';
 
 // Future formatter display components will be exported here
 // export { MeetingNotesDisplay } from './MeetingNotesDisplay';
 // export { JournalNotesDisplay } from './JournalNotesDisplay';
-// export { ShoppingListDisplay } from './ShoppingListDisplay';
 // export { ResearchNotesDisplay } from './ResearchNotesDisplay';
 // export { StudyNotesDisplay } from './StudyNotesDisplay';
