@@ -6,6 +6,8 @@
 
 export { BaseWorker } from './base/BaseWorker';
 export { WorkerPool } from './pool/WorkerPool';
+export { AdvancedWorkerPool } from './pool/AdvancedWorkerPool';
+export { EnhancedWorkerManager } from './utils/EnhancedWorkerManager';
 
 // Communication utilities
 export { 
@@ -28,6 +30,9 @@ export const WORKER_URLS = {
   meetingNotes: '/workers/formatters/meetingNotes.worker.js',
   taskLists: '/workers/formatters/taskLists.worker.js',
   shoppingLists: '/workers/formatters/shoppingLists.worker.js',
+  journalNotes: '/workers/formatters/journalNotes.worker.js',
+  researchNotes: '/workers/formatters/researchNotes.worker.js',
+  studyNotes: '/workers/formatters/studyNotes.worker.js',
   textProcessor: '/workers/processors/TextProcessor.worker.js',
 } as const;
 
@@ -40,6 +45,12 @@ export {
   type UseWorkerPoolResult,
   type ProcessingOptions as WorkerProcessingOptions
 } from '@/hooks/workers/useWorkerPool';
+
+// Enhanced worker manager hook - will be available after proper setup
+// export {
+//   useEnhancedWorkerManager,
+//   type UseEnhancedWorkerManagerResult
+// } from '@/hooks/workers/useEnhancedWorkerManager';
 
 export { 
   useTextProcessor,

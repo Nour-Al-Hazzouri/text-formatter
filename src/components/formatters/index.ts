@@ -8,6 +8,7 @@ export { TaskListDisplay } from './TaskListDisplay';
 export { ShoppingListDisplay } from './ShoppingListDisplay';
 export { JournalDisplay } from './JournalDisplay';
 export { ResearchDisplay } from './ResearchDisplay';
+export { StudyDisplay } from './StudyDisplay';
 
 // Future formatter display components will be exported here
 // export { MeetingNotesDisplay } from './MeetingNotesDisplay';

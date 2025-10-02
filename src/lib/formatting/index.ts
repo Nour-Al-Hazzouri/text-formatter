@@ -10,6 +10,7 @@ export { TaskListsFormatter } from './TaskListsFormatter';
 export { ShoppingListsFormatter } from './ShoppingListsFormatter';
 export { JournalNotesFormatter } from './JournalNotesFormatter';
 export { ResearchNotesFormatter } from './ResearchNotesFormatter';
+export { StudyNotesFormatter } from './StudyNotesFormatter';
 
 // Formatter registry for dynamic loading
 import { MeetingNotesFormatter } from './MeetingNotesFormatter';
@@ -17,6 +18,7 @@ import { TaskListsFormatter } from './TaskListsFormatter';
 import { ShoppingListsFormatter } from './ShoppingListsFormatter';
 import { JournalNotesFormatter } from './JournalNotesFormatter';
 import { ResearchNotesFormatter } from './ResearchNotesFormatter';
+import { StudyNotesFormatter } from './StudyNotesFormatter';
 import type { FormatType } from '@/types';
 
 export const FORMATTERS = {
@@ -25,8 +27,7 @@ export const FORMATTERS = {
   'shopping-lists': ShoppingListsFormatter,
   'journal-notes': JournalNotesFormatter,
   'research-notes': ResearchNotesFormatter,
-  // TODO: Add remaining formatters
-  // 'study-notes': StudyNotesFormatter,
+  'study-notes': StudyNotesFormatter,
 } as const;
 
 /**
@@ -53,6 +54,19 @@ export const formatJournalNotes = async (text: string) => {
 export const formatResearchNotes = async (text: string) => {
   const { ResearchNotesFormatter } = await import('./ResearchNotesFormatter');
   return ResearchNotesFormatter.format({
+    content: text,
+    metadata: {
+      source: 'type',
+      timestamp: new Date(),
+      size: text.length,
+    },
+  });
+};
+
+// Convenience function for study notes formatting
+export const formatStudyNotes = async (text: string) => {
+  const { StudyNotesFormatter } = await import('./StudyNotesFormatter');
+  return StudyNotesFormatter.format({
     content: text,
     metadata: {
       source: 'type',
