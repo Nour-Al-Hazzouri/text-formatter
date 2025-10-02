@@ -43,11 +43,13 @@ export class PWAManager {
   private updateCallbacks: ((info: PWAUpdateInfo) => void)[] = [];
   private installCallbacks: ((canInstall: boolean) => void)[] = [];
   private onlineCallbacks: ((isOnline: boolean) => void)[] = [];
-  private isOnline = navigator.onLine;
+  private isOnline = typeof window !== 'undefined' ? navigator.onLine : false;
 
   constructor() {
-    this.setupEventListeners();
-    this.registerServiceWorker();
+    if (typeof window !== 'undefined') {
+      this.setupEventListeners();
+      this.registerServiceWorker();
+    }
   }
 
   /**
@@ -278,13 +280,14 @@ export class PWAManager {
    * Register for background sync
    */
   async registerBackgroundSync(tag: string): Promise<void> {
-    if (!this.registration?.sync) {
+    const registration = this.registration as any;
+    if (!registration?.sync) {
       console.log('[PWA] Background Sync not supported');
       return;
     }
 
     try {
-      await this.registration.sync.register(tag);
+      await registration.sync.register(tag);
       console.log('[PWA] Background sync registered:', tag);
     } catch (error) {
       console.error('[PWA] Background sync registration failed:', error);
@@ -341,7 +344,7 @@ export class PWAManager {
   /**
    * Convert VAPID key to Uint8Array
    */
-  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+  private urlBase64ToUint8Array(base64String: string): BufferSource {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
       .replace(/\-/g, '+')
@@ -399,4 +402,4 @@ export class PWAManager {
 /**
  * Default PWA manager instance
  */
-export const pwaManager = new PWAManager();
+export const pwaManager = typeof window !== 'undefined' ? new PWAManager() : null as any;

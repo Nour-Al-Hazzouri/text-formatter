@@ -51,64 +51,66 @@ export interface UsePWAResult {
  */
 export function usePWA(): UsePWAResult {
   const [canInstall, setCanInstall] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : false);
   const [updateInfo, setUpdateInfo] = useState<PWAUpdateInfo | null>(null);
 
   // Initialize PWA manager and setup listeners
   useEffect(() => {
-    // Set initial states
-    setCanInstall(pwaManager.canInstall());
-    setIsOnline(pwaManager.getOnlineStatus());
+    if (pwaManager) {
+      // Set initial states
+      setCanInstall(pwaManager.canInstall());
+      setIsOnline(pwaManager.getOnlineStatus());
 
-    // Setup event listeners
-    pwaManager.onInstallAvailable(setCanInstall);
-    pwaManager.onOnlineStatusChange(setIsOnline);
-    pwaManager.onUpdateAvailable(setUpdateInfo);
+      // Setup event listeners
+      pwaManager.onInstallAvailable(setCanInstall);
+      pwaManager.onOnlineStatusChange(setIsOnline);
+      pwaManager.onUpdateAvailable(setUpdateInfo);
 
-    // Cleanup
-    return () => {
-      pwaManager.destroy();
-    };
+      // Cleanup
+      return () => {
+        pwaManager.destroy();
+      };
+    }
   }, []);
 
   // Install app
   const installApp = useCallback(async (): Promise<boolean> => {
-    return await pwaManager.installApp();
+    return pwaManager ? await pwaManager.installApp() : false;
   }, []);
 
   // Update app
   const updateApp = useCallback(async (): Promise<void> => {
-    await pwaManager.updateApp();
+    if (pwaManager) await pwaManager.updateApp();
   }, []);
 
   // Request persistent storage
   const requestPersistentStorage = useCallback(async (): Promise<boolean> => {
-    return await pwaManager.requestPersistentStorage();
+    return pwaManager ? await pwaManager.requestPersistentStorage() : false;
   }, []);
 
   // Get storage estimate
   const getStorageEstimate = useCallback(async (): Promise<StorageEstimate | null> => {
-    return await pwaManager.getStorageEstimate();
+    return pwaManager ? await pwaManager.getStorageEstimate() : null;
   }, []);
 
   // Register background sync
   const registerBackgroundSync = useCallback(async (tag: string): Promise<void> => {
-    await pwaManager.registerBackgroundSync(tag);
+    if (pwaManager) await pwaManager.registerBackgroundSync(tag);
   }, []);
 
   // Request notification permission
   const requestNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
-    return await pwaManager.requestNotificationPermission();
+    return pwaManager ? await pwaManager.requestNotificationPermission() : 'denied';
   }, []);
 
   // Subscribe to push notifications
   const subscribeToPush = useCallback(async (): Promise<PushSubscription | null> => {
-    return await pwaManager.subscribeToPush();
+    return pwaManager ? await pwaManager.subscribeToPush() : null;
   }, []);
 
   return {
     canInstall,
-    isRunningAsPWA: pwaManager.isRunningAsPWA(),
+    isRunningAsPWA: pwaManager ? pwaManager.isRunningAsPWA() : false,
     isOnline,
     updateInfo,
     installApp,

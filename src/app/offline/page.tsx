@@ -11,6 +11,9 @@
  */
 
 import { useEffect, useState } from 'react';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +25,9 @@ export default function OfflinePage() {
 
   // Monitor online status
   useEffect(() => {
-    setIsOnline(navigator.onLine);
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+    }
 
     const handleOnline = () => {
       setIsOnline(true);
@@ -43,11 +48,13 @@ export default function OfflinePage() {
   }, []);
 
   const handleRetry = () => {
-    if (navigator.onLine) {
+    if (typeof window !== 'undefined' && navigator.onLine) {
       window.location.href = '/';
     } else {
       // Try to refresh the page
-      window.location.reload();
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     }
   };
 

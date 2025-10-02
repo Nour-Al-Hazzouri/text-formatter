@@ -369,22 +369,23 @@ export function usePinchToZoom(
 ) {
   const initialDistance = useRef<number>(0);
   const initialScale = useRef<number>(1);
-  const [currentScale, setCurrentScale] = useState(1);
+  const [currentScale, setCurrentScale] = useState<number>(1);
 
-  const getDistance = (touch1: Touch, touch2: Touch): number => {
+  const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
     const dx = touch1.clientX - touch2.clientX;
     const dy = touch1.clientY - touch2.clientY;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const getCenter = (touch1: Touch, touch2: Touch) => ({
+  const getCenter = (touch1: React.Touch, touch2: React.Touch) => ({
     x: (touch1.clientX + touch2.clientX) / 2,
     y: (touch1.clientY + touch2.clientY) / 2
   });
 
   const onTouchStart = useCallback((event: React.TouchEvent) => {
     if (event.touches.length === 2) {
-      const [touch1, touch2] = event.touches;
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
       initialDistance.current = getDistance(touch1, touch2);
       initialScale.current = currentScale;
     }
@@ -394,7 +395,8 @@ export function usePinchToZoom(
     if (event.touches.length === 2) {
       event.preventDefault();
       
-      const [touch1, touch2] = event.touches;
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
       const distance = getDistance(touch1, touch2);
       const scale = Math.max(minScale, Math.min(maxScale, 
         (distance / initialDistance.current) * initialScale.current
