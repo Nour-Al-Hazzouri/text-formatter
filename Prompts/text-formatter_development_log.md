@@ -2391,7 +2391,7 @@ ms/line ≥ 10 → Slow (TrendingDown, red)
 
 ---
 
-## Task 14: Export & Copy Functionality ✅
+## Task 22: Export & Copy Functionality ✅
 
 **Date**: 2025-10-02
 **Status**: COMPLETED
