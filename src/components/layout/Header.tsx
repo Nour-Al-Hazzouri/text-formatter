@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X, FileText, Settings, History, BookTemplate } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -20,6 +20,19 @@ export function Header({
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Close mobile menu on Escape key
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isMobileMenuOpen])
+
   const navigationItems = [
     { href: '/', label: 'Formatter', icon: FileText },
     { href: '/history', label: 'History', icon: History },
@@ -37,23 +50,30 @@ export function Header({
   ]
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b border-orange-200/30 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 ${className}`}>
+    <header 
+      className={`sticky top-0 z-50 w-full border-b border-orange-300 bg-white shadow-sm ${className}`}
+      role="banner"
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2 group">
+            <Link 
+              href="/" 
+              className="flex items-center space-x-2 group focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 rounded-md"
+              aria-label="Text Formatter - Go to home page"
+            >
               <div className="relative">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-200/50 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-700 shadow-lg shadow-orange-200/50 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
                   <FileText className="w-4 h-4 text-white" />
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <div className="absolute -inset-1 bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
               </div>
               <div>
-                <h1 className="text-xl font-handwritten font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                <h1 className="text-xl font-handwritten font-semibold text-gray-900 group-hover:text-orange-700 transition-colors">
                   Text Formatter
                 </h1>
-                <p className="text-xs text-gray-500 font-content hidden sm:block">
+                <p className="text-xs text-gray-700 font-content hidden sm:block">
                   Intelligent text organization
                 </p>
               </div>
@@ -61,7 +81,11 @@ export function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav 
+            className="hidden md:flex items-center space-x-1"
+            role="navigation"
+            aria-label="Main navigation"
+          >
             {navigationItems.map((item) => {
               const Icon = item.icon
               return (
@@ -69,9 +93,10 @@ export function Header({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-9 px-3 text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                    className="h-9 px-3 text-gray-800 hover:text-orange-700 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 transition-colors font-medium"
+                    aria-label={`Navigate to ${item.label}`}
                   >
-                    <Icon className="w-4 h-4 mr-2" />
+                    <Icon className="w-4 h-4 mr-2" aria-hidden="true" />
                     {item.label}
                   </Button>
                 </Link>
@@ -85,22 +110,31 @@ export function Header({
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="h-9 w-9 p-0 text-gray-600 hover:text-orange-600 hover:bg-orange-50"
+              className="h-9 w-9 p-0 text-gray-800 hover:text-orange-700 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMobileMenuOpen ? "Close main menu" : "Open main menu"}
             >
               {isMobileMenuOpen ? (
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               ) : (
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5" aria-hidden="true" />
               )}
-              <span className="sr-only">Toggle menu</span>
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-orange-200/30 bg-white/95 backdrop-blur">
-            <nav className="py-4 space-y-1">
+          <div 
+            id="mobile-menu" 
+            className="md:hidden border-t border-orange-300 bg-white shadow-sm"
+          >
+            <nav 
+              className="py-4 space-y-1"
+              role="navigation"
+              aria-label="Mobile navigation"
+            >
               {navigationItems.map((item) => {
                 const Icon = item.icon
                 return (
@@ -108,9 +142,10 @@ export function Header({
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                    className="flex items-center px-4 py-3 text-gray-800 hover:text-orange-700 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset transition-colors font-medium"
+                    aria-label={`Navigate to ${item.label}`}
                   >
-                    <Icon className="w-4 h-4 mr-3" />
+                    <Icon className="w-4 h-4 mr-3" aria-hidden="true" />
                     {item.label}
                   </Link>
                 )
@@ -119,7 +154,11 @@ export function Header({
               {/* Format Options in Mobile Menu */}
               {showFormatOptions && (
                 <>
-                  <div className="px-4 py-2 text-sm font-handwritten font-semibold text-gray-900 border-t border-orange-200/30 mt-4 pt-4">
+                  <div 
+                    className="px-4 py-2 text-sm font-handwritten font-semibold text-gray-900 border-t border-orange-300 mt-4 pt-4"
+                    role="heading"
+                    aria-level={2}
+                  >
                     Format Types
                   </div>
                   {formatOptions.map((format) => (
@@ -130,14 +169,20 @@ export function Header({
                         setIsMobileMenuOpen(false)
                       }}
                       className={`
-                        w-full flex items-center px-4 py-2 text-left transition-colors
+                        w-full flex items-center px-4 py-3 text-left transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset
                         ${selectedFormat === format.id
-                          ? 'text-orange-600 bg-orange-50 border-r-2 border-orange-400'
-                          : 'text-gray-600 hover:text-orange-600 hover:bg-orange-50'
+                          ? 'text-orange-700 bg-orange-100 border-r-4 border-orange-600'
+                          : 'text-gray-800 hover:text-orange-700 hover:bg-orange-50'
                         }
                       `}
+                      aria-pressed={selectedFormat === format.id}
+                      aria-label={`Select ${format.name} format`}
                     >
-                      <span className="w-4 h-4 mr-3 flex items-center justify-center text-sm">
+                      <span 
+                        className="w-4 h-4 mr-3 flex items-center justify-center text-sm" 
+                        role="img" 
+                        aria-label={`${format.name} icon`}
+                      >
                         {format.icon}
                       </span>
                       {format.name}

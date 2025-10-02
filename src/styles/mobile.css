@@ -1,0 +1,592 @@
+/**
+ * Mobile Styles - Touch-optimized mobile interface styles
+ * 
+ * Features:
+ * - Touch-friendly button sizes and spacing
+ * - Mobile-first responsive design
+ * - Safe area handling for notched devices
+ * - PWA-specific styles and animations
+ * - Mobile gesture feedback
+ * - Performance-optimized animations
+ */
+
+/* ============================================================================
+   Mobile-First Base Styles
+   ============================================================================ */
+
+/* Viewport and touch handling */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* Remove default touch highlights */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Select text on long press */
+.selectable {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ============================================================================
+   Safe Area Support for Notched Devices
+   ============================================================================ */
+
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-right: env(safe-area-inset-right);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+}
+
+.safe-area-top {
+  height: var(--safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  height: var(--safe-area-inset-bottom);
+}
+
+.safe-area-inset-top {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.safe-area-inset-left {
+  padding-left: var(--safe-area-inset-left);
+}
+
+.safe-area-inset-right {
+  padding-right: var(--safe-area-inset-right);
+}
+
+.safe-area-inset {
+  padding: var(--safe-area-inset-top) var(--safe-area-inset-right) 
+           var(--safe-area-inset-bottom) var(--safe-area-inset-left);
+}
+
+/* ============================================================================
+   Touch-Friendly Interface Elements
+   ============================================================================ */
+
+/* Minimum touch target size (44px recommended by Apple/Google) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch feedback animations */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.touch-feedback:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Enhanced button styles for mobile */
+.mobile-button {
+  @apply touch-target touch-feedback;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.mobile-button:active {
+  transform: scale(0.98);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.mobile-button:disabled {
+  opacity: 0.6;
+  transform: none !important;
+}
+
+/* Mobile-optimized form elements */
+.mobile-input {
+  font-size: 16px; /* Prevent zoom on iOS */
+  min-height: 44px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.mobile-input:focus {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+  outline: none;
+}
+
+.mobile-textarea {
+  @apply mobile-input;
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ============================================================================
+   Mobile Navigation and Layout
+   ============================================================================ */
+
+/* Bottom navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  padding-bottom: calc(8px + var(--safe-area-inset-bottom));
+}
+
+.bottom-nav-item {
+  @apply touch-target;
+  flex-direction: column;
+  gap: 4px;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  text-decoration: none;
+}
+
+.bottom-nav-item.active {
+  color: #ff6b35;
+}
+
+.bottom-nav-item:active {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+/* Mobile header */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  padding-top: calc(16px + var(--safe-area-inset-top));
+}
+
+/* Pull-to-refresh indicator */
+.pull-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  background: #ff6b35;
+  color: white;
+  border-radius: 0 0 12px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  z-index: 50;
+}
+
+.pull-indicator.pulling {
+  transform: translateX(-50%) translateY(0);
+}
+
+.pull-indicator.refreshing {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================================
+   Mobile Gestures and Interactions
+   ============================================================================ */
+
+/* Swipe animations */
+.swipe-container {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.swipe-item {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.swipe-item.swiping {
+  transition: none;
+}
+
+/* Long press feedback */
+.long-press {
+  transition: all 0.15s ease;
+}
+
+.long-press:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+/* Haptic feedback classes */
+.haptic-light:active {
+  animation: haptic-pulse-light 0.1s ease;
+}
+
+.haptic-medium:active {
+  animation: haptic-pulse-medium 0.15s ease;
+}
+
+.haptic-heavy:active {
+  animation: haptic-pulse-heavy 0.2s ease;
+}
+
+@keyframes haptic-pulse-light {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+}
+
+@keyframes haptic-pulse-medium {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.96); }
+}
+
+@keyframes haptic-pulse-heavy {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.94); }
+}
+
+/* ============================================================================
+   Bottom Sheet and Modal Styles
+   ============================================================================ */
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.1);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  width: 48px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+
+.bottom-sheet-content {
+  padding: 24px;
+  padding-bottom: calc(24px + var(--safe-area-inset-bottom));
+}
+
+/* Mobile modal overlay */
+.mobile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-modal-overlay.open {
+  opacity: 1;
+}
+
+/* ============================================================================
+   PWA-Specific Styles
+   ============================================================================ */
+
+/* PWA install banner */
+.pwa-install-banner {
+  background: linear-gradient(135deg, #ff6b35, #ff8f65);
+  color: white;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-install-icon {
+  font-size: 24px;
+}
+
+.pwa-install-text h4 {
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+
+.pwa-install-text p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Offline indicator */
+.offline-indicator {
+  position: fixed;
+  top: var(--safe-area-inset-top);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 0 0 12px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 60;
+  animation: slide-down 0.3s ease;
+}
+
+/* Update available indicator */
+.update-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  background: #3b82f6;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slide-up 0.3s ease;
+  z-index: 45;
+}
+
+/* ============================================================================
+   Mobile-Optimized Animations
+   ============================================================================ */
+
+/* Slide animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   Mobile Responsive Utilities
+   ============================================================================ */
+
+/* Hide on mobile */
+@media (max-width: 767px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Mobile text sizes */
+.text-mobile-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-mobile-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-mobile-base { font-size: 1rem; line-height: 1.5rem; }
+.text-mobile-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.text-mobile-xl { font-size: 1.25rem; line-height: 1.75rem; }
+
+/* Mobile spacing */
+.p-mobile { padding: 1rem; }
+.px-mobile { padding-left: 1rem; padding-right: 1rem; }
+.py-mobile { padding-top: 1rem; padding-bottom: 1rem; }
+.m-mobile { margin: 1rem; }
+.mx-mobile { margin-left: 1rem; margin-right: 1rem; }
+.my-mobile { margin-top: 1rem; margin-bottom: 1rem; }
+
+/* ============================================================================
+   Dark Mode Mobile Optimizations
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .bottom-nav {
+    background: rgba(17, 24, 39, 0.95);
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-header {
+    background: rgba(17, 24, 39, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: white;
+  }
+  
+  .mobile-input:focus {
+    border-color: #ff6b35;
+  }
+  
+  .bottom-sheet {
+    background: #1f2937;
+  }
+  
+  .bottom-sheet-handle {
+    background: #4b5563;
+  }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+/* Hardware acceleration for smooth animations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+/* Optimize for 60fps animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* Reduce repaints during scroll */
+.scroll-optimized {
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   Mobile Accessibility Enhancements
+   ============================================================================ */
+
+/* Larger tap targets for accessibility */
+.a11y-touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Focus indicators for mobile keyboard navigation */
+@media (any-hover: none) {
+  .mobile-focus:focus-visible {
+    outline: 3px solid #ff6b35;
+    outline-offset: 2px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobile-button {
+    border-width: 3px;
+  }
+  
+  .mobile-input {
+    border-width: 3px;
+  }
+}

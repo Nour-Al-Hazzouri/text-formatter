@@ -4,7 +4,14 @@ import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout";
 import { InputPane, OutputPane, FormatSelector } from "@/components/formatter";
 import { TaskListDisplay } from "@/components/formatters";
-import { MeetingNotesFormatter, TaskListsFormatter } from "@/lib/formatting";
+import { 
+  MeetingNotesFormatter, 
+  TaskListsFormatter,
+  ShoppingListsFormatter,
+  JournalNotesFormatter,
+  ResearchNotesFormatter,
+  StudyNotesFormatter
+} from "@/lib/formatting";
 import type { FormatType } from "@/types";
 import type { FormattedOutput } from "@/types/formatting";
 
@@ -43,12 +50,28 @@ export default function Home() {
         case 'task-lists':
           result = await TaskListsFormatter.format(inputPayload);
           break;
+
+        case 'shopping-lists':
+          result = await ShoppingListsFormatter.format(inputPayload);
+          break;
+
+        case 'journal-notes':
+          result = await JournalNotesFormatter.format(inputPayload);
+          break;
+
+        case 'research-notes':
+          result = await ResearchNotesFormatter.format(inputPayload);
+          break;
+
+        case 'study-notes':
+          result = await StudyNotesFormatter.format(inputPayload);
+          break;
           
         default:
-          // Placeholder for other formats
+          // This should not happen as we have all formatters implemented
           result = {
             format: selectedFormat,
-            content: `${selectedFormat.toUpperCase()} FORMATTING\n\n${inputText}\n\n(Formatter not yet implemented)`,
+            content: `Error: Unknown format type "${selectedFormat}"\n\nPlease select a valid format from the available options.`,
             metadata: {
               processedAt: new Date(),
               duration: 0,

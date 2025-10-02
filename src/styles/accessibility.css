@@ -1,0 +1,468 @@
+/**
+ * Accessibility Styles - WCAG 2.1 AA compliant styles
+ * 
+ * Features:
+ * - High contrast mode
+ * - Enhanced focus indicators
+ * - Reduced motion support
+ * - Font size scaling
+ * - Screen reader optimization
+ */
+
+/* ============================================================================
+   High Contrast Mode
+   ============================================================================ */
+
+.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f0;
+  --secondary-foreground: #000000;
+  --muted: #e0e0e0;
+  --muted-foreground: #000000;
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+  --border: #000000;
+  --input: #ffffff;
+  --ring: #000000;
+}
+
+.high-contrast .dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #2a2a2a;
+  --muted-foreground: #ffffff;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --destructive: #ff6666;
+  --destructive-foreground: #000000;
+  --border: #ffffff;
+  --input: #000000;
+  --ring: #ffffff;
+}
+
+.high-contrast * {
+  border-color: var(--border) !important;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+.high-contrast button,
+.high-contrast [role="button"] {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 2px solid var(--border) !important;
+}
+
+.high-contrast button:hover,
+.high-contrast [role="button"]:hover {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  background-color: var(--input) !important;
+  color: var(--foreground) !important;
+  border: 2px solid var(--border) !important;
+}
+
+/* ============================================================================
+   Enhanced Focus Indicators
+   ============================================================================ */
+
+.enhanced-focus *:focus,
+.enhanced-focus *:focus-visible {
+  outline: 3px solid #ff6b35 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(255, 107, 53, 0.3) !important;
+}
+
+.enhanced-focus button:focus,
+.enhanced-focus [role="button"]:focus {
+  outline: 3px solid #ffffff !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px #ff6b35, 0 0 0 5px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* High contrast focus indicators */
+.high-contrast.enhanced-focus *:focus,
+.high-contrast.enhanced-focus *:focus-visible {
+  outline: 4px solid #ff0000 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px rgba(255, 0, 0, 0.5) !important;
+}
+
+/* Skip focus ring when using mouse */
+.using-mouse *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ============================================================================ */
+
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .animate-spin {
+  animation: none !important;
+}
+
+.reduce-motion .animate-pulse {
+  animation: none !important;
+}
+
+.reduce-motion .animate-bounce {
+  animation: none !important;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* ============================================================================
+   Font Size Scaling
+   ============================================================================ */
+
+[data-font-size="small"] {
+  font-size: 0.875rem; /* 14px */
+}
+
+[data-font-size="medium"] {
+  font-size: 1rem; /* 16px */
+}
+
+[data-font-size="large"] {
+  font-size: 1.125rem; /* 18px */
+}
+
+[data-font-size="extra-large"] {
+  font-size: 1.25rem; /* 20px */
+}
+
+/* Responsive font scaling */
+[data-font-size="small"] h1 { font-size: 1.5rem; }
+[data-font-size="small"] h2 { font-size: 1.25rem; }
+[data-font-size="small"] h3 { font-size: 1.125rem; }
+
+[data-font-size="medium"] h1 { font-size: 1.875rem; }
+[data-font-size="medium"] h2 { font-size: 1.5rem; }
+[data-font-size="medium"] h3 { font-size: 1.25rem; }
+
+[data-font-size="large"] h1 { font-size: 2.25rem; }
+[data-font-size="large"] h2 { font-size: 1.875rem; }
+[data-font-size="large"] h3 { font-size: 1.5rem; }
+
+[data-font-size="extra-large"] h1 { font-size: 2.5rem; }
+[data-font-size="extra-large"] h2 { font-size: 2rem; }
+[data-font-size="extra-large"] h3 { font-size: 1.75rem; }
+
+/* ============================================================================
+   Screen Reader Optimization
+   ============================================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Screen reader announcer (hidden but accessible) */
+#screen-reader-announcer {
+  position: absolute;
+  left: -10000px;
+  top: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   Skip Links
+   ============================================================================ */
+
+#skip-links {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: 9999;
+  background: #000000;
+  color: #ffffff;
+  padding: 8px;
+  transition: top 0.3s;
+  border-radius: 0 0 4px 4px;
+}
+
+#skip-links:focus-within {
+  top: 0;
+}
+
+#skip-links a {
+  display: block;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 2px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+#skip-links a:focus {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+#skip-links a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   Keyboard Navigation Enhancements
+   ============================================================================ */
+
+/* Tab order visual indicators (development only) */
+.debug-tab-order [tabindex]:not([tabindex="-1"])::after {
+  content: attr(tabindex);
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b35;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 50%;
+  z-index: 1000;
+}
+
+/* Enhanced interactive elements */
+button,
+[role="button"],
+a,
+input,
+textarea,
+select {
+  position: relative;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  z-index: 10;
+}
+
+/* ============================================================================
+   Content Accessibility
+   ============================================================================ */
+
+/* Ensure sufficient line height for readability */
+p, li, div {
+  line-height: 1.5;
+}
+
+/* Ensure links are distinguishable */
+a {
+  text-decoration: underline;
+}
+
+a:hover,
+a:focus {
+  text-decoration: none;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* List markers for better structure */
+ul, ol {
+  padding-left: 2em;
+}
+
+/* Table accessibility */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid currentColor;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background: rgba(0, 0, 0, 0.05);
+  font-weight: bold;
+}
+
+/* Form accessibility */
+label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+select {
+  border: 2px solid currentColor;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+input:invalid {
+  border-color: #dc2626;
+}
+
+input:invalid:focus {
+  outline-color: #dc2626;
+}
+
+/* Error states */
+.error {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.error-input {
+  border-color: #dc2626 !important;
+}
+
+/* Success states */
+.success {
+  color: #059669;
+  font-weight: 500;
+}
+
+.success-input {
+  border-color: #059669 !important;
+}
+
+/* ============================================================================
+   Media Queries for Accessibility Preferences
+   ============================================================================ */
+
+/* High contrast preference */
+@media (prefers-contrast: high) {
+  :root {
+    --border-width: 2px;
+  }
+  
+  * {
+    border-width: var(--border-width);
+  }
+  
+  button,
+  [role="button"] {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Color scheme preferences */
+@media (prefers-color-scheme: dark) {
+  .auto-dark {
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .auto-light {
+    color-scheme: light;
+  }
+}
+
+/* ============================================================================
+   Print Accessibility
+   ============================================================================ */
+
+@media print {
+  /* Ensure good contrast in print */
+  * {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Hide interactive elements */
+  button,
+  [role="button"],
+  input,
+  textarea,
+  select {
+    display: none !important;
+  }
+  
+  /* Show link URLs */
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  /* Ensure headings are bold */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    page-break-after: avoid;
+  }
+  
+  /* Avoid page breaks in important content */
+  blockquote,
+  table,
+  pre {
+    page-break-inside: avoid;
+  }
+}
