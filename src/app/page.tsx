@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout";
 import { InputPane, OutputPane, FormatSelector } from "@/components/formatter";
-import { MeetingNotesFormatter } from "@/lib/formatting";
+import { TaskListDisplay } from "@/components/formatters";
+import { MeetingNotesFormatter, TaskListsFormatter } from "@/lib/formatting";
 import type { FormatType } from "@/types";
 import type { FormattedOutput } from "@/types/formatting";
 
@@ -22,48 +23,60 @@ export default function Home() {
 
     setIsProcessing(true);
     try {
-      // Currently only Meeting Notes formatter is implemented
-      if (selectedFormat === 'meeting-notes') {
-        const result = await MeetingNotesFormatter.format({
-          content: inputText,
-          metadata: {
-            source: 'type',
-            timestamp: new Date(),
-            size: inputText.length,
-          },
-        });
-        setFormattedOutput(result);
-      } else {
-        // Placeholder for other formats
-        setFormattedOutput({
-          format: selectedFormat,
-          content: `${selectedFormat.toUpperCase()} FORMATTING\n\n${inputText}\n\n(Formatter not yet implemented)`,
-          metadata: {
-            processedAt: new Date(),
-            duration: 0,
-            confidence: 0,
-            itemCount: 0,
-            stats: {
-              linesProcessed: inputText.split('\n').length,
-              patternsMatched: 0,
-              itemsExtracted: 0,
-              duplicatesRemoved: 0,
-              changesApplied: 0,
+      const inputPayload = {
+        content: inputText,
+        metadata: {
+          source: 'type' as const,
+          timestamp: new Date(),
+          size: inputText.length,
+        },
+      };
+
+      let result: FormattedOutput;
+
+      // Format based on selected type
+      switch (selectedFormat) {
+        case 'meeting-notes':
+          result = await MeetingNotesFormatter.format(inputPayload);
+          break;
+          
+        case 'task-lists':
+          result = await TaskListsFormatter.format(inputPayload);
+          break;
+          
+        default:
+          // Placeholder for other formats
+          result = {
+            format: selectedFormat,
+            content: `${selectedFormat.toUpperCase()} FORMATTING\n\n${inputText}\n\n(Formatter not yet implemented)`,
+            metadata: {
+              processedAt: new Date(),
+              duration: 0,
+              confidence: 0,
+              itemCount: 0,
+              stats: {
+                linesProcessed: inputText.split('\n').length,
+                patternsMatched: 0,
+                itemsExtracted: 0,
+                duplicatesRemoved: 0,
+                changesApplied: 0,
+              },
             },
-          },
-          data: {
-            common: {
-              dates: [],
-              urls: [],
-              emails: [],
-              phoneNumbers: [],
-              mentions: [],
-              hashtags: [],
+            data: {
+              common: {
+                dates: [],
+                urls: [],
+                emails: [],
+                phoneNumbers: [],
+                mentions: [],
+                hashtags: [],
+              },
+              formatSpecific: {} as any,
             },
-            formatSpecific: {} as any,
-          },
-        });
+          };
       }
+      
+      setFormattedOutput(result);
     } catch (error) {
       console.error('Formatting error:', error);
     } finally {

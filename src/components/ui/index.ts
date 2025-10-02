@@ -54,27 +54,11 @@ export {
 } from './drawer';
 export { Skeleton } from './skeleton';
 export { Badge } from './badge';
+export { Progress } from './progress';
 
 // Custom components
-export {
-  Heading,
-  Paragraph,
-  Code,
-  Blockquote,
-  List,
-  ListItem,
-  headingVariants,
-  paragraphVariants,
-  codeVariants,
-} from './typography';
-
-export {
-  LoadingSpinner,
-  ProcessingIndicator,
-  PaperSkeleton,
-  TypingAnimation,
-  loadingVariants,
-} from './loading';
+export { Heading, Paragraph, Code, Blockquote, List, ListItem } from './typography';
+export { LoadingSpinner, ProcessingIndicator, PaperSkeleton, TypingAnimation } from './loading';
 
 // Component type exports for TypeScript
 export type { VariantProps } from 'class-variance-authority';
